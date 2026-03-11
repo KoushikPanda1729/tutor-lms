@@ -12,6 +12,7 @@ import {
   ChevronRight,
   FileText,
   ClipboardList,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -25,6 +26,7 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
   const { slug } = use(params);
   const [batches, setBatches] = useState<Batch[]>(mockBatches);
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
+  const [deleteTarget, setDeleteTarget] = useState<Batch | null>(null);
 
   const filtered = batches.filter((b) => filter === "all" || b.status === filter);
 
@@ -40,10 +42,11 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
     );
   };
 
-  const deleteBatch = (id: string) => {
-    const batch = batches.find((b) => b.id === id);
-    setBatches((prev) => prev.filter((b) => b.id !== id));
-    toast.success(`"${batch?.name}" deleted`);
+  const deleteBatch = () => {
+    if (!deleteTarget) return;
+    setBatches((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+    toast.success(`"${deleteTarget.name}" deleted`);
+    setDeleteTarget(null);
   };
 
   const activeCnt = batches.filter((b) => b.status === "active").length;
@@ -179,7 +182,10 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
 
                 {/* Delete */}
                 <button
-                  onClick={() => deleteBatch(batch.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget(batch);
+                  }}
                   title="Delete batch"
                   className="rounded-lg p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-colors"
                 >
@@ -193,6 +199,72 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
               </Link>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setDeleteTarget(null)}
+          />
+
+          {/* Dialog */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200">
+            {/* Icon */}
+            <div className="flex items-center justify-center mb-4">
+              <div className="h-14 w-14 rounded-2xl bg-red-50 flex items-center justify-center">
+                <AlertTriangle className="h-7 w-7 text-red-500" />
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="text-center mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-2">Delete Batch?</h2>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-slate-700">
+                  &ldquo;{deleteTarget.name}&rdquo;
+                </span>
+                ?
+                <br />
+                This will permanently remove all students, tests, notes, and attendance records for
+                this batch.
+              </p>
+            </div>
+
+            {/* Batch preview */}
+            <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-6">
+              <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
+                <BookOpen className="h-4 w-4 text-red-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-900 truncate">{deleteTarget.name}</p>
+                <p className="text-xs text-slate-500">
+                  {deleteTarget.subject} · {deleteTarget.studentCount} students
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 h-11 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteBatch}
+                className="flex-1 h-11 rounded-xl bg-red-500 text-sm font-bold text-white hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Yes, Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

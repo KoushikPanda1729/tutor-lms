@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { OrgSetupBanner } from "@/components/ui/org-setup-banner";
 import { HeroSlider } from "@/components/ui/hero-slider";
+import { StatsMarquee } from "@/components/ui/stats-marquee";
 import { LandingNav } from "@/components/layout/landing-nav";
 import {
   GraduationCap,
@@ -301,26 +302,35 @@ export default function LandingPage() {
       </section>
 
       {/* Why us */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-24 px-6 bg-slate-50">
         <div className="max-w-6xl mx-auto">
+          {/* Stats marquee */}
+          <div className="mb-20">
+            <StatsMarquee />
+          </div>
+
+          {/* Main content */}
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <p className="text-sm font-semibold text-indigo-600 uppercase tracking-widest mb-3">
-                Why TutorLMS
-              </p>
-              <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">
-                Built specifically for Indian coaching centers
+              <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 border border-indigo-100 px-4 py-1.5 mb-5">
+                <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">
+                  Why TutorLMS
+                </span>
+              </span>
+              <h2 className="text-4xl font-extrabold text-slate-900 mb-5 leading-tight">
+                Built for India&apos;s coaching ecosystem
               </h2>
-              <p className="text-lg text-slate-500 mb-8 leading-relaxed">
+              <p className="text-lg text-slate-500 mb-10 leading-relaxed">
                 Unlike generic LMS platforms, TutorLMS is designed from the ground up for JEE, NEET,
                 and competitive exam coaching institutes.
               </p>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {[
                   {
                     icon: Zap,
                     title: "Lightning Fast Setup",
-                    desc: "Get your center live in under 10 minutes.",
+                    desc: "Get your center live in under 10 minutes. No technical knowledge required.",
                   },
                   {
                     icon: Shield,
@@ -330,40 +340,59 @@ export default function LandingPage() {
                   {
                     icon: HeadphonesIcon,
                     title: "Dedicated Support",
-                    desc: "Real humans available via chat and phone.",
+                    desc: "Real humans via chat and phone. Average response under 2 minutes.",
                   },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                      <item.icon className="h-5 w-5 text-indigo-600" />
+                    <div className="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0 shadow-sm">
+                      <item.icon className="h-5 w-5 text-white" />
                     </div>
                     <div>
                       <p className="font-semibold text-slate-900">{item.title}</p>
-                      <p className="text-sm text-slate-500 mt-0.5">{item.desc}</p>
+                      <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 p-8 text-white">
-              <p className="text-sm font-semibold text-indigo-200 uppercase tracking-widest mb-6">
-                Quick Glance
-              </p>
-              <div className="space-y-4">
-                {[
-                  { label: "Average attendance tracked per day", value: "2,400+" },
-                  { label: "Tests auto-graded per month", value: "18,000+" },
-                  { label: "Notes & videos served", value: "95,000+" },
-                  { label: "Centers onboarded in 2024", value: "40+" },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between border-b border-white/10 pb-4"
-                  >
-                    <p className="text-sm text-indigo-200">{item.label}</p>
-                    <p className="text-xl font-bold">{item.value}</p>
+
+            {/* Right visual */}
+            <div className="relative">
+              <div className="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white overflow-hidden">
+                <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
+                <div className="absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-violet-400/20 blur-xl" />
+                <div className="relative z-10">
+                  <p className="text-xs font-bold text-indigo-200 uppercase tracking-widest mb-6">
+                    Designed for India
+                  </p>
+                  <div className="space-y-5">
+                    {[
+                      {
+                        tag: "JEE / NEET",
+                        desc: "Built around competitive exam patterns and batch cycles",
+                      },
+                      {
+                        tag: "Multi-branch",
+                        desc: "Manage multiple centers from a single dashboard",
+                      },
+                      {
+                        tag: "Affordable",
+                        desc: "Priced for growing coaching institutes, not enterprises",
+                      },
+                      {
+                        tag: "Vernacular ready",
+                        desc: "Support for regional language content coming soon",
+                      },
+                    ].map((item) => (
+                      <div key={item.tag} className="flex items-start gap-3">
+                        <span className="mt-0.5 shrink-0 rounded-full bg-white/15 border border-white/20 px-2.5 py-0.5 text-xs font-bold text-white">
+                          {item.tag}
+                        </span>
+                        <p className="text-sm text-indigo-100 leading-relaxed">{item.desc}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </div>
@@ -388,7 +417,7 @@ export default function LandingPage() {
                 key={plan.name}
                 className={`rounded-2xl border p-8 relative ${
                   plan.highlight
-                    ? "border-indigo-600 bg-indigo-600 text-white shadow-2xl shadow-indigo-200 scale-105"
+                    ? "border-indigo-600 bg-indigo-600 text-white shadow-2xl shadow-indigo-200"
                     : "border-slate-200 bg-white"
                 }`}
               >
@@ -440,21 +469,119 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="py-24 px-6 bg-gradient-to-r from-indigo-600 to-violet-600">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-extrabold text-white mb-4">
-            Ready to transform your institute?
-          </h2>
-          <p className="text-indigo-200 text-lg mb-10">
-            Join 40+ coaching centers already using TutorLMS. Setup takes less than 10 minutes.
-          </p>
-          <Link
-            href="/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-bold text-indigo-600 hover:bg-indigo-50 transition-colors shadow-lg"
-          >
-            Get Started Free <ArrowRight className="h-4 w-4" />
-          </Link>
+      {/* Reviews */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-100 px-4 py-1.5 mb-5">
+              <span className="text-xs font-semibold text-amber-600 uppercase tracking-widest">
+                Customer Reviews
+              </span>
+            </span>
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
+              Loved by coaching centers
+            </h2>
+            <div className="flex items-center justify-center gap-1 mb-2">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} className="h-5 w-5 text-amber-400 fill-amber-400" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <p className="text-sm text-slate-500">4.9 out of 5 — based on 120+ reviews</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Rajesh Sharma",
+                role: "Director, Apex Coaching Centre",
+                location: "Kota, Rajasthan",
+                review:
+                  "TutorLMS transformed how we manage our 400+ students. Attendance, tests, notes — everything in one place. Setup was genuinely under 10 minutes.",
+                avatar: "RS",
+                color: "bg-indigo-600",
+              },
+              {
+                name: "Priya Nair",
+                role: "Founder, BrightPath Academy",
+                location: "Kochi, Kerala",
+                review:
+                  "The auto-grading for MCQ tests alone saves us 6+ hours every week. Students love getting their results instantly. Best investment for our institute.",
+                avatar: "PN",
+                color: "bg-violet-600",
+              },
+              {
+                name: "Amit Verma",
+                role: "Head, IIT Prep Institute",
+                location: "Pune, Maharashtra",
+                review:
+                  "Finally a platform built for Indian coaching centers. The batch management and attendance calendar are exactly what we needed. Support team is excellent.",
+                avatar: "AV",
+                color: "bg-emerald-600",
+              },
+              {
+                name: "Sunita Reddy",
+                role: "Owner, Excel Classes",
+                location: "Hyderabad, Telangana",
+                review:
+                  "We moved from WhatsApp groups to TutorLMS in a week. Parents and students are much more engaged now. The notes and video library is a game changer.",
+                avatar: "SR",
+                color: "bg-rose-600",
+              },
+              {
+                name: "Deepak Joshi",
+                role: "Co-founder, NEET Mentors",
+                location: "Ahmedabad, Gujarat",
+                review:
+                  "Running 3 branches was a nightmare before. Now I manage everything from one dashboard. The multi-center feature is worth every rupee.",
+                avatar: "DJ",
+                color: "bg-amber-600",
+              },
+              {
+                name: "Meera Iyer",
+                role: "Academic Head, TopRank Institute",
+                location: "Chennai, Tamil Nadu",
+                review:
+                  "The analytics dashboard helped us identify weak students early. Our batch pass rate improved by 22% in just one semester. Highly recommended!",
+                avatar: "MI",
+                color: "bg-sky-600",
+              },
+            ].map((r) => (
+              <div
+                key={r.name}
+                className="bg-slate-50 border border-slate-200 rounded-2xl p-6 flex flex-col gap-4 hover:shadow-md transition-shadow"
+              >
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <svg
+                      key={i}
+                      className="h-4 w-4 text-amber-400 fill-amber-400"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed flex-1">
+                  &ldquo;{r.review}&rdquo;
+                </p>
+                <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
+                  <div
+                    className={`h-9 w-9 rounded-full ${r.color} flex items-center justify-center shrink-0`}
+                  >
+                    <span className="text-xs font-bold text-white">{r.avatar}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{r.name}</p>
+                    <p className="text-xs text-slate-500">
+                      {r.role} · {r.location}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
