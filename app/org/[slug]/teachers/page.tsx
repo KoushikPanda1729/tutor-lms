@@ -7,14 +7,15 @@ import {
   Phone,
   UserCheck,
   Trash2,
-  ToggleLeft,
-  ToggleRight,
   X,
   BookOpen,
   CalendarDays,
   Users,
+  ChevronRight,
+  Search,
+  ClipboardList,
+  CheckCircle2,
 } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
@@ -31,10 +32,9 @@ import {
 import { toast } from "sonner";
 import type { Teacher } from "@/types";
 
-// ── Teacher Detail Panel ─────────────────────────────────────────────
+// ── Teacher Detail Panel ──────────────────────────────────────────────
 function TeacherDetailPanel({ teacher, onClose }: { teacher: Teacher; onClose: () => void }) {
   const assignedBatches = mockBatches.filter((b) => teacher.assignedBatches.includes(b.id));
-
   const totalStudents = assignedBatches.reduce((s, b) => s + b.studentCount, 0);
   const totalClasses = mockAttendance.filter((a) =>
     teacher.assignedBatches.includes(a.batchId)
@@ -42,162 +42,176 @@ function TeacherDetailPanel({ teacher, onClose }: { teacher: Teacher; onClose: (
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-screen w-full max-w-sm bg-white z-50 shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="px-6 pt-6 pb-5 border-b border-slate-100 shrink-0">
-          <div className="flex items-start justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <div className="h-14 w-14 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                <span className="text-lg font-bold text-indigo-600">
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-[420px] bg-white shadow-2xl flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+            Teacher Profile
+          </p>
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {/* Profile */}
+          <div className="px-6 pt-6 pb-5 border-b border-slate-100">
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                <span className="text-lg font-bold text-slate-600">
                   {getInitials(teacher.name)}
                 </span>
               </div>
               <div>
-                <h3 className="font-bold text-slate-900">{teacher.name}</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Joined {formatDate(teacher.createdAt)}
-                </p>
+                <h2 className="text-lg font-bold text-slate-900">{teacher.name}</h2>
+                <p className="text-sm text-slate-400">{teacher.email}</p>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-medium text-emerald-600">Active</span>
+                </div>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
 
-          {/* Contact */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Mail className="h-3.5 w-3.5 text-slate-400" />
-              {teacher.email}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Phone className="h-3.5 w-3.5 text-slate-400" />
-              {teacher.phone}
-            </div>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-3 text-center">
-              <p className="text-xl font-black text-indigo-700">{assignedBatches.length}</p>
-              <p className="text-[10px] text-indigo-500 mt-0.5">Batches</p>
-            </div>
-            <div className="rounded-xl bg-green-50 border border-green-100 p-3 text-center">
-              <p className="text-xl font-black text-green-700">{totalStudents}</p>
-              <p className="text-[10px] text-green-500 mt-0.5">Students</p>
-            </div>
-            <div className="rounded-xl bg-amber-50 border border-amber-100 p-3 text-center">
-              <p className="text-xl font-black text-amber-700">{totalClasses}</p>
-              <p className="text-[10px] text-amber-500 mt-0.5">Classes</p>
-            </div>
+          <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100">
+            {[
+              { icon: BookOpen, label: "Batches", value: assignedBatches.length },
+              { icon: Users, label: "Students", value: totalStudents },
+              { icon: ClipboardList, label: "Classes", value: totalClasses },
+            ].map((s) => (
+              <div key={s.label} className="flex flex-col items-center py-4 gap-1">
+                <p className="text-xl font-bold text-slate-900">{s.value}</p>
+                <div className="flex items-center gap-1 text-xs text-slate-400">
+                  <s.icon className="h-3 w-3" /> {s.label}
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Assigned Batches */}
-          <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
-              Assigned Batches
-            </p>
-            {assignedBatches.length === 0 ? (
-              <p className="text-xs text-slate-400">No batches assigned</p>
-            ) : (
+          <div className="px-6 py-5 space-y-6">
+            {/* Contact */}
+            <div>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                Contact
+              </p>
               <div className="space-y-2">
-                {assignedBatches.map((batch) => (
+                {[
+                  { icon: Mail, value: teacher.email },
+                  { icon: Phone, value: teacher.phone },
+                  { icon: CalendarDays, value: `Joined ${formatDate(teacher.createdAt)}` },
+                ].map((item, i) => (
                   <div
-                    key={batch.id}
-                    className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3"
+                    key={i}
+                    className="flex items-center gap-3 rounded-xl bg-slate-50 border border-slate-100 px-4 py-2.5"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                        <BookOpen className="h-4 w-4 text-indigo-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-800">{batch.name}</p>
-                        <p className="text-xs text-slate-400">{batch.subject}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
-                        <Users className="h-3 w-3" /> {batch.studentCount}
-                      </span>
-                      <Badge
-                        variant={batch.status === "active" ? "success" : "secondary"}
-                        className="capitalize text-[10px]"
-                      >
-                        {batch.status}
-                      </Badge>
-                    </div>
+                    <item.icon className="h-4 w-4 text-slate-400 shrink-0" />
+                    <span className="text-sm text-slate-700">{item.value}</span>
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Batches */}
+            <div>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                Assigned Batches
+              </p>
+              {assignedBatches.length === 0 ? (
+                <p className="text-sm text-slate-400">No batches assigned</p>
+              ) : (
+                <div className="space-y-2">
+                  {assignedBatches.map((b) => (
+                    <div
+                      key={b.id}
+                      className="flex items-center gap-3 border border-slate-200 rounded-xl px-4 py-3"
+                    >
+                      <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                        <BookOpen className="h-4 w-4 text-indigo-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{b.name}</p>
+                        <p className="text-xs text-slate-400">{b.subject}</p>
+                      </div>
+                      <span
+                        className={cn(
+                          "text-[11px] font-semibold px-2 py-0.5 rounded-full border shrink-0",
+                          b.status === "active"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : "bg-slate-100 text-slate-500 border-slate-200"
+                        )}
+                      >
+                        {b.status === "active" ? "Active" : "Archived"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Recent classes */}
+            {totalClasses > 0 && (
+              <div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                  Recent Classes
+                </p>
+                <div className="space-y-2">
+                  {mockAttendance
+                    .filter((a) => teacher.assignedBatches.includes(a.batchId))
+                    .sort((a, b) => b.date.localeCompare(a.date))
+                    .slice(0, 4)
+                    .map((att) => {
+                      const batch = mockBatches.find((b) => b.id === att.batchId);
+                      const present = att.records.filter((r) => r.present).length;
+                      const total = att.records.length;
+                      return (
+                        <div
+                          key={att.id}
+                          className="flex items-center gap-3 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-slate-800 truncate">
+                              {batch?.name}
+                            </p>
+                            <p className="text-xs text-slate-400">{formatDate(att.date)}</p>
+                          </div>
+                          <span className="text-sm font-bold text-emerald-600 shrink-0">
+                            {present}/{total}
+                          </span>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
             )}
           </div>
-
-          {/* Recent Classes */}
-          {totalClasses > 0 && (
-            <div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
-                Recent Classes
-              </p>
-              <div className="space-y-1.5">
-                {mockAttendance
-                  .filter((a) => teacher.assignedBatches.includes(a.batchId))
-                  .sort((a, b) => b.date.localeCompare(a.date))
-                  .slice(0, 5)
-                  .map((att) => {
-                    const batch = mockBatches.find((b) => b.id === att.batchId);
-                    const present = att.records.filter((r) => r.present).length;
-                    const total = att.records.length;
-                    return (
-                      <div
-                        key={att.id}
-                        className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5"
-                      >
-                        <div>
-                          <p className="text-xs font-medium text-slate-700">{batch?.name}</p>
-                          <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                            <CalendarDays className="h-3 w-3" /> {formatDate(att.date)}
-                          </p>
-                        </div>
-                        <span className="text-xs font-semibold text-slate-600">
-                          {present}/{total} present
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────
+// ── Main Page ──────────────────────────────────────────────────────────
 export default function TeachersPage() {
   const [teachers] = useState<Teacher[]>(mockTeachers);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-  const [activeMap, setActiveMap] = useState<Record<string, boolean>>(
-    Object.fromEntries(mockTeachers.map((t) => [t.id, true]))
-  );
+  const [search, setSearch] = useState("");
+  const [batchFilter, setBatchFilter] = useState("all");
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
 
-  const toggleActive = (id: string) => {
-    setActiveMap((prev) => {
-      const next = !prev[id];
-      const t = teachers.find((t) => t.id === id);
-      toast.success(`"${t?.name}" marked as ${next ? "active" : "inactive"}`);
-      return { ...prev, [id]: next };
-    });
-  };
+  const activeBatches = mockBatches.filter((b) => b.status === "active");
+
+  const filtered = teachers.filter((t) => {
+    const matchSearch =
+      t.name.toLowerCase().includes(search.toLowerCase()) ||
+      t.email.toLowerCase().includes(search.toLowerCase());
+    const matchBatch = batchFilter === "all" || t.assignedBatches.includes(batchFilter);
+    return matchSearch && matchBatch;
+  });
 
   const invite = async () => {
     await new Promise((r) => setTimeout(r, 600));
@@ -207,7 +221,7 @@ export default function TeachersPage() {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Teachers"
         description={`${teachers.length} teacher${teachers.length !== 1 ? "s" : ""}`}
@@ -252,95 +266,151 @@ export default function TeachersPage() {
         }
       />
 
-      {teachers.length === 0 ? (
+      {/* Toolbar */}
+      <div className="flex items-center gap-3">
+        <div className="relative shrink-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search teachers..."
+            className="h-9 w-56 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+          />
+        </div>
+
+        {/* Filter pills */}
+        <div className="flex items-center gap-1.5">
+          {[
+            { id: "all", label: "All", count: teachers.length },
+            ...activeBatches.map((b) => ({
+              id: b.id,
+              label: b.subject,
+              count: teachers.filter((t) => t.assignedBatches.includes(b.id)).length,
+            })),
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setBatchFilter(tab.id)}
+              className={cn(
+                "h-8 px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap",
+                batchFilter === tab.id
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "bg-white border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
+              )}
+            >
+              {tab.label}
+              <span
+                className={cn(
+                  "text-[10px] font-bold rounded-full px-1.5 py-px",
+                  batchFilter === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"
+                )}
+              >
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
         <EmptyState
           icon={UserCheck}
-          title="No teachers yet"
-          description="Invite teachers to your institute."
+          title="No teachers found"
+          description="Try adjusting your search."
         />
       ) : (
-        <div className="space-y-3">
-          {teachers.map((teacher) => {
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          {/* Column headers */}
+          <div className="flex items-center px-5 py-2.5 bg-slate-50 border-b border-slate-100">
+            <div className="w-52 shrink-0">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Teacher
+              </p>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Contact
+              </p>
+            </div>
+            <div className="w-64 shrink-0">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Batches
+              </p>
+            </div>
+            <div className="w-24 shrink-0 text-right">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Joined
+              </p>
+            </div>
+            <div className="w-5 shrink-0" />
+          </div>
+
+          {filtered.map((teacher, i) => {
             const assignedBatches = mockBatches.filter((b) =>
               teacher.assignedBatches.includes(b.id)
             );
-            const isActive = activeMap[teacher.id];
             return (
               <div
                 key={teacher.id}
                 onClick={() => setSelectedTeacher(teacher)}
-                className="rounded-2xl border border-slate-200 bg-white shadow-sm px-5 py-4 hover:border-indigo-200 hover:shadow-md transition-all group cursor-pointer"
+                className={cn(
+                  "flex items-center px-5 py-3 cursor-pointer group transition-colors hover:bg-slate-50",
+                  i !== 0 && "border-t border-slate-100"
+                )}
               >
-                <div className="flex items-start gap-4">
-                  {/* Avatar */}
-                  <div className="h-11 w-11 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                    <span className="text-sm font-bold text-indigo-600">
+                {/* Teacher — w-52 */}
+                <div className="w-52 shrink-0 flex items-center gap-3 min-w-0">
+                  <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+                    <span className="text-[11px] font-bold text-slate-600">
                       {getInitials(teacher.name)}
                     </span>
                   </div>
-
-                  {/* Info + batches */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
                       {teacher.name}
                     </p>
-                    <div className="flex items-center gap-4 mt-1">
-                      <span className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <Mail className="h-3 w-3" /> {teacher.email}
-                      </span>
-                      <span className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <Phone className="h-3 w-3" /> {teacher.phone}
-                      </span>
-                    </div>
-                    {/* Batch tags */}
-                    <div className="flex flex-wrap gap-1.5 mt-2.5">
-                      {assignedBatches.map((b) => (
-                        <span
-                          key={b.id}
-                          className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100"
-                        >
-                          <BookOpen className="h-3 w-3" />
-                          {b.name}
-                        </span>
-                      ))}
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                      <span className="text-xs text-slate-400">Active</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleActive(teacher.id);
-                      }}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium border transition-colors",
-                        isActive
-                          ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
-                          : "border-slate-200 bg-white text-slate-500 hover:bg-slate-100"
-                      )}
+                {/* Contact — flex-1 */}
+                <div className="flex-1 min-w-0 space-y-0.5">
+                  <p className="text-xs text-slate-600 flex items-center gap-1.5 truncate">
+                    <Mail className="h-3 w-3 text-slate-300 shrink-0" /> {teacher.email}
+                  </p>
+                  <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                    <Phone className="h-3 w-3 text-slate-300 shrink-0" /> {teacher.phone}
+                  </p>
+                </div>
+
+                {/* Batches — w-64 */}
+                <div className="w-64 shrink-0 flex items-center gap-1.5 flex-wrap">
+                  {assignedBatches.slice(0, 2).map((b) => (
+                    <span
+                      key={b.id}
+                      className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 whitespace-nowrap"
                     >
-                      {isActive ? (
-                        <>
-                          <ToggleRight className="h-3.5 w-3.5" /> Active
-                        </>
-                      ) : (
-                        <>
-                          <ToggleLeft className="h-3.5 w-3.5" /> Inactive
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast.success(`"${teacher.name}" removed`);
-                      }}
-                      className="rounded-lg p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-colors"
-                      title="Remove teacher"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                      {b.subject}
+                    </span>
+                  ))}
+                  {assignedBatches.length > 2 && (
+                    <span className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-slate-100 text-slate-500">
+                      +{assignedBatches.length - 2}
+                    </span>
+                  )}
+                </div>
+
+                {/* Joined — w-24 */}
+                <p className="w-24 shrink-0 text-right text-xs text-slate-400 whitespace-nowrap">
+                  {formatDate(teacher.createdAt)}
+                </p>
+
+                {/* Arrow — w-5 */}
+                <div className="w-5 shrink-0 flex justify-end">
+                  <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
                 </div>
               </div>
             );
