@@ -134,36 +134,168 @@ export default function LandingPage() {
       <HeroSlider />
 
       {/* Features */}
-      <section id="features" className="py-24 px-6 bg-slate-50">
+      <section id="features" className="py-28 px-6 bg-white overflow-hidden">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-sm font-semibold text-indigo-600 uppercase tracking-widest mb-3">
-              Features
-            </p>
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">
-              Everything you need to run your institute
+          {/* Header */}
+          <div className="text-center mb-20">
+            <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 border border-indigo-100 px-4 py-1.5 mb-5">
+              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+              <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">
+                Platform Features
+              </span>
+            </span>
+            <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-5 leading-tight">
+              Everything in one{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10 text-indigo-600">platform</span>
+                <span className="absolute -bottom-1 left-0 right-0 h-3 bg-indigo-100 rounded-full -z-0" />
+              </span>
             </h2>
-            <p className="text-lg text-slate-500 max-w-xl mx-auto">
-              Powerful tools designed for coaching centers of all sizes.
+            <p className="text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
+              Powerful tools designed for coaching centers of all sizes — from a single tutor to
+              multi-branch institutes.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {features.map((f) => (
-              <div
-                key={f.title}
-                className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all group"
-              >
-                <div
-                  className={`h-11 w-11 rounded-xl flex items-center justify-center mb-4 ${f.color.split(" ")[0]}`}
-                >
-                  <f.icon className={`h-5 w-5 ${f.color.split(" ")[1]}`} />
+
+          {/* Bento Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Big card: Multi-Center */}
+            <div className="md:col-span-2 relative rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-8 overflow-hidden group cursor-default">
+              <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/5 blur-2xl" />
+              <div className="absolute right-10 bottom-0 h-32 w-32 rounded-full bg-violet-400/20 blur-xl" />
+              <div className="relative z-10">
+                <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6 border border-white/20">
+                  <Building2 className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="font-semibold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                  {f.title}
-                </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
+                <h3 className="text-2xl font-bold text-white mb-3">Multi-Center Management</h3>
+                <p className="text-indigo-200 leading-relaxed max-w-sm">
+                  Each coaching center gets their own branded subdomain and fully isolated data —
+                  manage everything from one master dashboard.
+                </p>
+                <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-white/80">
+                  <span>Isolated data per center</span>
+                  <span className="h-1 w-1 rounded-full bg-white/40" />
+                  <span>Custom subdomains</span>
+                  <span className="h-1 w-1 rounded-full bg-white/40" />
+                  <span>Role-based access</span>
+                </div>
               </div>
-            ))}
+            </div>
+
+            {/* Student Onboarding */}
+            <div className="rounded-3xl bg-slate-900 p-7 relative overflow-hidden group cursor-default">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-900/40 to-transparent" />
+              <div className="relative z-10">
+                <div className="h-11 w-11 rounded-2xl bg-violet-500/20 flex items-center justify-center mb-5 border border-violet-500/30">
+                  <Users className="h-5 w-5 text-violet-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Student Onboarding</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Invite students via link or let them join instantly with your center code.
+                </p>
+              </div>
+            </div>
+
+            {/* Attendance */}
+            <div className="rounded-3xl bg-amber-50 border border-amber-100 p-7 group hover:shadow-lg hover:shadow-amber-100 transition-all duration-300 cursor-default">
+              <div className="h-11 w-11 rounded-2xl bg-amber-100 flex items-center justify-center mb-5">
+                <CalendarCheck className="h-5 w-5 text-amber-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Attendance Tracking</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Mark daily attendance per batch with a beautiful calendar view and instant reports.
+              </p>
+              <div className="mt-5 grid grid-cols-7 gap-1">
+                {Array.from({ length: 21 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-5 w-full rounded-sm ${
+                      [2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19].includes(i)
+                        ? "bg-amber-400"
+                        : [4, 11, 18].includes(i)
+                          ? "bg-red-300"
+                          : "bg-amber-100"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Online Tests */}
+            <div className="md:col-span-2 rounded-3xl bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-100 p-7 group hover:shadow-lg hover:shadow-rose-100 transition-all duration-300 cursor-default relative overflow-hidden">
+              <div className="absolute right-6 top-6 flex gap-2">
+                {["MCQ", "Fill", "True/False"].map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs font-semibold bg-white border border-rose-100 text-rose-500 px-2.5 py-1 rounded-full shadow-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <div className="h-11 w-11 rounded-2xl bg-rose-100 flex items-center justify-center mb-5">
+                <ClipboardList className="h-5 w-5 text-rose-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Online Tests & Auto-Grading</h3>
+              <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
+                Create MCQ tests, auto-grade submissions instantly, and view detailed performance
+                reports per student.
+              </p>
+            </div>
+
+            {/* Reports */}
+            <div className="md:col-span-2 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 p-7 group hover:shadow-lg hover:shadow-emerald-100 transition-all duration-300 cursor-default">
+              <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center mb-5">
+                <BarChart3 className="h-5 w-5 text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Reports & Analytics</h3>
+              <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
+                Track attendance, test scores, and student performance. Spot trends before they
+                become problems.
+              </p>
+              <div className="mt-5 flex items-end gap-1.5 h-12">
+                {[40, 65, 50, 80, 60, 90, 75, 95, 70, 85].map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 rounded-t-sm bg-emerald-400/60 group-hover:bg-emerald-500/70 transition-colors"
+                    style={{ height: `${h}%` }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Video Lectures */}
+            <div className="rounded-3xl bg-sky-50 border border-sky-100 p-7 group hover:shadow-lg hover:shadow-sky-100 transition-all duration-300 cursor-default">
+              <div className="h-11 w-11 rounded-2xl bg-sky-100 flex items-center justify-center mb-5">
+                <Video className="h-5 w-5 text-sky-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Video Lectures</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Upload or link YouTube videos with drag-to-reorder for each batch.
+              </p>
+            </div>
+
+            {/* Content Management */}
+            <div className="rounded-3xl bg-blue-50 border border-blue-100 p-7 group hover:shadow-lg hover:shadow-blue-100 transition-all duration-300 cursor-default">
+              <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center mb-5">
+                <BookOpen className="h-5 w-5 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Content Management</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Upload notes, videos, and schedule tests per batch with ease.
+              </p>
+            </div>
+
+            {/* Notes & PDFs */}
+            <div className="rounded-3xl bg-orange-50 border border-orange-100 p-7 group hover:shadow-lg hover:shadow-orange-100 transition-all duration-300 cursor-default">
+              <div className="h-11 w-11 rounded-2xl bg-orange-100 flex items-center justify-center mb-5">
+                <FileText className="h-5 w-5 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Notes & PDFs</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Share study materials as PDFs with preview and download support.
+              </p>
+            </div>
           </div>
         </div>
       </section>
