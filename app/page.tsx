@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { OrgSetupBanner } from "@/components/ui/org-setup-banner";
 import { HeroSlider } from "@/components/ui/hero-slider";
+import { LandingNav } from "@/components/layout/landing-nav";
 import {
   GraduationCap,
   CheckCircle,
@@ -127,51 +128,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
       <OrgSetupBanner />
-      {/* Nav */}
-      <nav className="fixed top-0 inset-x-0 z-50 border-b border-slate-100 bg-white/95 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <GraduationCap className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-base font-bold text-slate-900">TutorLMS</span>
-          </div>
-          <div className="hidden md:flex items-center gap-1 text-sm text-slate-600">
-            <a
-              href="#features"
-              className="px-4 py-2 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-colors font-medium"
-            >
-              Features
-            </a>
-            <a
-              href="#pricing"
-              className="px-4 py-2 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-colors font-medium"
-            >
-              Pricing
-            </a>
-            <a
-              href="#about"
-              className="px-4 py-2 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-colors font-medium"
-            >
-              About
-            </a>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors px-4 py-2 rounded-lg hover:bg-slate-100"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm"
-            >
-              Get Started <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <LandingNav />
 
       {/* Hero */}
       <HeroSlider />
