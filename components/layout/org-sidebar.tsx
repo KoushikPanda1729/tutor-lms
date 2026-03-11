@@ -12,9 +12,15 @@ import {
   LogOut,
   GraduationCap,
   ChevronDown,
+  FileText,
+  Video,
+  ClipboardList,
+  CalendarCheck,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { mockBatches } from "@/lib/mock-data";
 
 const navSlugs = [
   { label: "Dashboard", slug: "dashboard", icon: LayoutDashboard },
@@ -25,6 +31,15 @@ const navSlugs = [
   { label: "Settings", slug: "settings", icon: Settings },
 ];
 
+const batchTabs = [
+  { label: "Overview", href: "", icon: LayoutDashboard },
+  { label: "Notes", href: "/notes", icon: FileText },
+  { label: "Videos", href: "/videos", icon: Video },
+  { label: "Tests", href: "/tests", icon: ClipboardList },
+  { label: "Attendance", href: "/attendance", icon: CalendarCheck },
+  { label: "Students", href: "/students", icon: Users },
+];
+
 interface OrgSidebarProps {
   orgName?: string;
   orgSlug?: string;
@@ -33,6 +48,14 @@ interface OrgSidebarProps {
 export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+
+  // Detect if we're inside a batch detail page
+  const pathParts = pathname.split("/");
+  // /org/[slug]/batches/[batchId]/...
+  const isInsideBatch = pathParts[3] === "batches" && pathParts[4] && pathParts[4] !== "new";
+  const currentBatchId = isInsideBatch ? pathParts[4] : null;
+  const batch = currentBatchId ? mockBatches.find((b) => b.id === currentBatchId) : null;
+  const batchBase = currentBatchId ? `/org/${orgSlug}/batches/${currentBatchId}` : null;
 
   return (
     <aside
@@ -55,29 +78,70 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-4 space-y-1">
+      <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
         {navSlugs.map((item) => {
           const Icon = item.icon;
           const href = `/org/${orgSlug}/${item.slug}`;
-          // Match exact segment after /org/[slug]/ to avoid false positives
-          // e.g. /org/allen/batches/batch-1/students should highlight "batches", not "students"
-          const isActive = pathname.split("/")[3] === item.slug;
+          const isActive = pathParts[3] === item.slug;
+          const isBatchesItem = item.slug === "batches";
+
           return (
-            <Link
-              key={item.slug}
-              href={href}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                collapsed && "justify-center px-0",
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+            <div key={item.slug}>
+              <Link
+                href={href}
+                title={collapsed ? item.label : undefined}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  collapsed && "justify-center px-0",
+                  isActive
+                    ? "bg-indigo-600 text-white"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {!collapsed && <span className="flex-1">{item.label}</span>}
+                {!collapsed && isBatchesItem && isInsideBatch && (
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
+                )}
+              </Link>
+
+              {/* Batch sub-nav */}
+              {isBatchesItem && isInsideBatch && batchBase && !collapsed && (
+                <div className="mt-0.5 mb-1">
+                  {/* Batch name label */}
+                  {batch && (
+                    <p className="px-3 pt-1 pb-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest truncate">
+                      {batch.name}
+                    </p>
+                  )}
+                  <div className="space-y-0.5 pl-3">
+                    {batchTabs.map((tab) => {
+                      const tabHref = `${batchBase}${tab.href}`;
+                      const TabIcon = tab.icon;
+                      const isTabActive =
+                        tab.href === ""
+                          ? pathname === batchBase
+                          : pathname.startsWith(`${batchBase}${tab.href}`);
+                      return (
+                        <Link
+                          key={tab.label}
+                          href={tabHref}
+                          className={cn(
+                            "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                            isTabActive
+                              ? "bg-indigo-500/20 text-indigo-300"
+                              : "text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+                          )}
+                        >
+                          <TabIcon className="h-3.5 w-3.5 shrink-0" />
+                          {tab.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {!collapsed && item.label}
-            </Link>
+            </div>
           );
         })}
       </nav>
