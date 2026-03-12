@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { SuperAdminSidebar } from "@/components/layout/super-admin-sidebar";
 import { ShellClient } from "@/components/layout/shell-client";
+import { SuperAdminBottomNav } from "@/components/super-admin/bottom-nav";
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +13,8 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
       }
       userName="Super Admin"
       userEmail="admin@tutorlms.com"
+      orgName="TutorLMS"
+      mobileBottomNav={<SuperAdminBottomNav />}
     >
       {children}
     </ShellClient>
