@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { Suspense, useState, use } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { toast } from "sonner";
@@ -30,7 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { mockBatches, mockStudents } from "@/lib/mock-data";
 
-export default function SettingsPage({ params }: { params: Promise<{ slug: string }> }) {
+function SettingsContent({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") ?? "general";
@@ -523,5 +523,15 @@ export default function SettingsPage({ params }: { params: Promise<{ slug: strin
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense
+      fallback={<div className="h-64 animate-pulse bg-white rounded-2xl border border-slate-200" />}
+    >
+      <SettingsContent params={params} />
+    </Suspense>
   );
 }
