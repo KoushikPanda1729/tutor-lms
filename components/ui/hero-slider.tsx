@@ -97,7 +97,7 @@ export function HeroSlider() {
           {stats.map((s) => (
             <div key={s.label} className="text-center">
               <p className="text-xl sm:text-3xl font-extrabold text-white drop-shadow">{s.value}</p>
-              <p className="text-[10px] sm:text-sm text-white/60 mt-0.5 sm:mt-1">{s.label}</p>
+              <p className="text-[11px] sm:text-sm text-white/60 mt-0.5 sm:mt-1">{s.label}</p>
             </div>
           ))}
         </div>

@@ -74,18 +74,18 @@ export function StatsMarquee() {
   return (
     <div className="relative overflow-hidden py-4">
       {/* Left fade */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-slate-50 to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-24 bg-gradient-to-r from-slate-50 to-transparent z-10" />
       {/* Right fade */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-slate-50 to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-24 bg-gradient-to-l from-slate-50 to-transparent z-10" />
 
       <div className="flex gap-4 w-max" style={{ animation: "marquee 30s linear infinite" }}>
         {doubled.map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 bg-white border border-slate-200 rounded-2xl px-5 py-3.5 shadow-sm shrink-0"
+            className="flex items-center gap-2 sm:gap-3 bg-white border border-slate-200 rounded-2xl px-3 sm:px-5 py-2.5 sm:py-3.5 shadow-sm shrink-0"
           >
             <div
-              className={`h-9 w-9 rounded-xl ${item.bg} flex items-center justify-center shrink-0`}
+              className={`h-7 w-7 sm:h-9 sm:w-9 rounded-xl ${item.bg} flex items-center justify-center shrink-0`}
             >
               <item.icon
                 className={`h-4.5 w-4.5 ${item.color}`}
@@ -93,8 +93,12 @@ export function StatsMarquee() {
               />
             </div>
             <div>
-              <p className={`text-base font-extrabold ${item.color} leading-none`}>{item.value}</p>
-              <p className="text-xs text-slate-500 mt-0.5 whitespace-nowrap">{item.label}</p>
+              <p className={`text-sm sm:text-base font-extrabold ${item.color} leading-none`}>
+                {item.value}
+              </p>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 whitespace-nowrap">
+                {item.label}
+              </p>
             </div>
           </div>
         ))}

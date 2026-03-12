@@ -3,6 +3,7 @@ import { OrgSetupBanner } from "@/components/ui/org-setup-banner";
 import { HeroSlider } from "@/components/ui/hero-slider";
 import { StatsMarquee } from "@/components/ui/stats-marquee";
 import { LandingNav } from "@/components/layout/landing-nav";
+import { LandingBottomNav } from "@/components/layout/landing-bottom-nav";
 import {
   GraduationCap,
   CheckCircle,
@@ -127,25 +128,26 @@ const footerLinks = {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-20 md:pb-0">
       <OrgSetupBanner />
       <LandingNav />
+      <LandingBottomNav />
 
       {/* Hero */}
       <HeroSlider />
 
       {/* Features */}
-      <section id="features" className="py-28 px-6 bg-white overflow-hidden">
+      <section id="features" className="py-16 sm:py-28 px-4 sm:px-6 bg-white overflow-hidden">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-20">
+          <div className="text-center mb-10 sm:mb-20">
             <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 border border-indigo-100 px-4 py-1.5 mb-5">
               <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
               <span className="text-xs font-semibold text-indigo-600 uppercase tracking-widest">
                 Platform Features
               </span>
             </span>
-            <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mb-5 leading-tight">
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 mb-5 leading-tight">
               Everything in one{" "}
               <span className="relative inline-block">
                 <span className="relative z-10 text-indigo-600">platform</span>
@@ -161,30 +163,32 @@ export default function LandingPage() {
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Big card: Multi-Center */}
-            <div className="md:col-span-2 relative rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-8 overflow-hidden group cursor-default">
+            <div className="md:col-span-2 relative rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-5 sm:p-8 overflow-hidden group cursor-default">
               <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/5 blur-2xl" />
               <div className="absolute right-10 bottom-0 h-32 w-32 rounded-full bg-violet-400/20 blur-xl" />
               <div className="relative z-10">
                 <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6 border border-white/20">
                   <Building2 className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">Multi-Center Management</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                  Multi-Center Management
+                </h3>
                 <p className="text-indigo-200 leading-relaxed max-w-sm">
                   Each coaching center gets their own branded subdomain and fully isolated data —
                   manage everything from one master dashboard.
                 </p>
-                <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-white/80">
+                <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-white/80">
                   <span>Isolated data per center</span>
-                  <span className="h-1 w-1 rounded-full bg-white/40" />
+                  <span className="h-1 w-1 rounded-full bg-white/40 hidden sm:inline-block" />
                   <span>Custom subdomains</span>
-                  <span className="h-1 w-1 rounded-full bg-white/40" />
+                  <span className="h-1 w-1 rounded-full bg-white/40 hidden sm:inline-block" />
                   <span>Role-based access</span>
                 </div>
               </div>
             </div>
 
             {/* Student Onboarding */}
-            <div className="rounded-3xl bg-slate-900 p-7 relative overflow-hidden group cursor-default">
+            <div className="rounded-3xl bg-slate-900 p-5 sm:p-7 relative overflow-hidden group cursor-default">
               <div className="absolute inset-0 bg-gradient-to-br from-violet-900/40 to-transparent" />
               <div className="relative z-10">
                 <div className="h-11 w-11 rounded-2xl bg-violet-500/20 flex items-center justify-center mb-5 border border-violet-500/30">
@@ -198,7 +202,7 @@ export default function LandingPage() {
             </div>
 
             {/* Attendance */}
-            <div className="rounded-3xl bg-amber-50 border border-amber-100 p-7 group hover:shadow-lg hover:shadow-amber-100 transition-all duration-300 cursor-default">
+            <div className="rounded-3xl bg-amber-50 border border-amber-100 p-5 sm:p-7 group hover:shadow-lg hover:shadow-amber-100 transition-all duration-300 cursor-default">
               <div className="h-11 w-11 rounded-2xl bg-amber-100 flex items-center justify-center mb-5">
                 <CalendarCheck className="h-5 w-5 text-amber-600" />
               </div>
@@ -223,9 +227,9 @@ export default function LandingPage() {
             </div>
 
             {/* Online Tests */}
-            <div className="md:col-span-2 rounded-3xl bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-100 p-7 group hover:shadow-lg hover:shadow-rose-100 transition-all duration-300 cursor-default relative overflow-hidden">
-              <div className="absolute right-6 top-6 flex gap-2">
-                {["MCQ", "Fill", "True/False"].map((tag) => (
+            <div className="md:col-span-2 rounded-3xl bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-100 p-5 sm:p-7 group hover:shadow-lg hover:shadow-rose-100 transition-all duration-300 cursor-default relative overflow-hidden">
+              <div className="absolute right-4 top-4 sm:right-6 sm:top-6 flex gap-1.5 sm:gap-2">
+                {["MCQ", "Fill", "T/F"].map((tag) => (
                   <span
                     key={tag}
                     className="text-xs font-semibold bg-white border border-rose-100 text-rose-500 px-2.5 py-1 rounded-full shadow-sm"
@@ -245,7 +249,7 @@ export default function LandingPage() {
             </div>
 
             {/* Reports */}
-            <div className="md:col-span-2 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 p-7 group hover:shadow-lg hover:shadow-emerald-100 transition-all duration-300 cursor-default">
+            <div className="md:col-span-2 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 p-5 sm:p-7 group hover:shadow-lg hover:shadow-emerald-100 transition-all duration-300 cursor-default">
               <div className="h-11 w-11 rounded-2xl bg-emerald-100 flex items-center justify-center mb-5">
                 <BarChart3 className="h-5 w-5 text-emerald-600" />
               </div>
@@ -266,7 +270,7 @@ export default function LandingPage() {
             </div>
 
             {/* Video Lectures */}
-            <div className="rounded-3xl bg-sky-50 border border-sky-100 p-7 group hover:shadow-lg hover:shadow-sky-100 transition-all duration-300 cursor-default">
+            <div className="rounded-3xl bg-sky-50 border border-sky-100 p-5 sm:p-7 group hover:shadow-lg hover:shadow-sky-100 transition-all duration-300 cursor-default">
               <div className="h-11 w-11 rounded-2xl bg-sky-100 flex items-center justify-center mb-5">
                 <Video className="h-5 w-5 text-sky-600" />
               </div>
@@ -277,7 +281,7 @@ export default function LandingPage() {
             </div>
 
             {/* Content Management */}
-            <div className="rounded-3xl bg-blue-50 border border-blue-100 p-7 group hover:shadow-lg hover:shadow-blue-100 transition-all duration-300 cursor-default">
+            <div className="rounded-3xl bg-blue-50 border border-blue-100 p-5 sm:p-7 group hover:shadow-lg hover:shadow-blue-100 transition-all duration-300 cursor-default">
               <div className="h-11 w-11 rounded-2xl bg-blue-100 flex items-center justify-center mb-5">
                 <BookOpen className="h-5 w-5 text-blue-600" />
               </div>
@@ -288,7 +292,7 @@ export default function LandingPage() {
             </div>
 
             {/* Notes & PDFs */}
-            <div className="rounded-3xl bg-orange-50 border border-orange-100 p-7 group hover:shadow-lg hover:shadow-orange-100 transition-all duration-300 cursor-default">
+            <div className="rounded-3xl bg-orange-50 border border-orange-100 p-5 sm:p-7 group hover:shadow-lg hover:shadow-orange-100 transition-all duration-300 cursor-default">
               <div className="h-11 w-11 rounded-2xl bg-orange-100 flex items-center justify-center mb-5">
                 <FileText className="h-5 w-5 text-orange-600" />
               </div>
@@ -302,15 +306,15 @@ export default function LandingPage() {
       </section>
 
       {/* Why us */}
-      <section className="py-24 px-6 bg-slate-50">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-slate-50">
         <div className="max-w-6xl mx-auto">
           {/* Stats marquee */}
-          <div className="mb-20">
+          <div className="mb-12 sm:mb-20">
             <StatsMarquee />
           </div>
 
           {/* Main content */}
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 border border-indigo-100 px-4 py-1.5 mb-5">
                 <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
@@ -318,10 +322,10 @@ export default function LandingPage() {
                   Why TutorLMS
                 </span>
               </span>
-              <h2 className="text-4xl font-extrabold text-slate-900 mb-5 leading-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-5 leading-tight">
                 Built for India&apos;s coaching ecosystem
               </h2>
-              <p className="text-lg text-slate-500 mb-10 leading-relaxed">
+              <p className="text-base sm:text-lg text-slate-500 mb-8 sm:mb-10 leading-relaxed">
                 Unlike generic LMS platforms, TutorLMS is designed from the ground up for JEE, NEET,
                 and competitive exam coaching institutes.
               </p>
@@ -358,7 +362,7 @@ export default function LandingPage() {
 
             {/* Right visual */}
             <div className="relative">
-              <div className="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white overflow-hidden">
+              <div className="rounded-3xl bg-gradient-to-br from-indigo-600 to-violet-700 p-5 sm:p-8 text-white overflow-hidden">
                 <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
                 <div className="absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-violet-400/20 blur-xl" />
                 <div className="relative z-10">
@@ -400,13 +404,15 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24 px-6 bg-slate-50">
+      <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 sm:mb-16">
             <p className="text-sm font-semibold text-indigo-600 uppercase tracking-widest mb-3">
               Pricing
             </p>
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">Simple, transparent pricing</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+              Simple, transparent pricing
+            </h2>
             <p className="text-lg text-slate-500">
               Start free, upgrade as you grow. No hidden fees.
             </p>
@@ -415,7 +421,7 @@ export default function LandingPage() {
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`rounded-2xl border p-8 relative ${
+                className={`rounded-2xl border p-5 sm:p-8 relative ${
                   plan.highlight
                     ? "border-indigo-600 bg-indigo-600 text-white shadow-2xl shadow-indigo-200"
                     : "border-slate-200 bg-white"
@@ -432,7 +438,7 @@ export default function LandingPage() {
                   {plan.name}
                 </p>
                 <p
-                  className={`text-4xl font-extrabold mb-0.5 ${plan.highlight ? "text-white" : "text-slate-900"}`}
+                  className={`text-3xl sm:text-4xl font-extrabold mb-0.5 ${plan.highlight ? "text-white" : "text-slate-900"}`}
                 >
                   {plan.price}
                 </p>
@@ -470,15 +476,15 @@ export default function LandingPage() {
       </section>
 
       {/* Reviews */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10 sm:mb-14">
             <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-100 px-4 py-1.5 mb-5">
               <span className="text-xs font-semibold text-amber-600 uppercase tracking-widest">
                 Customer Reviews
               </span>
             </span>
-            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
               Loved by coaching centers
             </h2>
             <div className="flex items-center justify-center gap-1 mb-2">
@@ -587,11 +593,11 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-400">
-        <div className="max-w-6xl mx-auto px-6 pt-16 pb-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-10">
           {/* Top section */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-12">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 sm:gap-10 mb-12">
             {/* Brand */}
-            <div className="md:col-span-2">
+            <div className="col-span-2 sm:col-span-3 md:col-span-2">
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="h-9 w-9 rounded-lg bg-indigo-600 flex items-center justify-center">
                   <GraduationCap className="h-5 w-5 text-white" />
