@@ -164,30 +164,30 @@ function SortableVideoRow({
           : "border-slate-200 hover:border-slate-300"
       }`}
     >
-      {/* Drag handle */}
+      {/* Drag handle — hidden on mobile */}
       <button
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 text-slate-300 hover:text-slate-500 rounded transition-colors shrink-0 touch-none"
+        className="hidden sm:flex cursor-grab active:cursor-grabbing p-1 text-slate-300 hover:text-slate-500 rounded transition-colors shrink-0 touch-none"
         title="Drag to reorder"
       >
         <GripVertical className="h-4 w-4" />
       </button>
 
       {/* Index */}
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+      <span className="hidden sm:flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
         {index + 1}
       </span>
 
       {/* Thumbnail placeholder */}
-      <div className="flex h-10 w-16 shrink-0 items-center justify-center rounded-lg bg-slate-900">
+      <div className="flex h-10 w-10 sm:w-16 shrink-0 items-center justify-center rounded-lg bg-slate-900">
         <Play className="h-4 w-4 text-white fill-white" />
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-slate-900 truncate">{video.title}</p>
-        <div className="flex items-center gap-3 mt-0.5">
+        <div className="hidden sm:flex items-center gap-3 mt-0.5">
           <span className="text-xs text-slate-400">{video.uploadedBy}</span>
           <span className="text-xs text-slate-300">·</span>
           <span className="text-xs text-slate-400">{formatDate(video.createdAt)}</span>
@@ -200,11 +200,23 @@ function SortableVideoRow({
             </>
           )}
         </div>
+        <div className="flex sm:hidden items-center gap-2 mt-0.5">
+          {video.duration && (
+            <span className="flex items-center gap-1 text-xs text-slate-400">
+              <Clock className="h-3 w-3" /> {video.duration}
+            </span>
+          )}
+          {video.type === "youtube" && (
+            <span className="flex items-center gap-1 text-xs text-red-500">
+              <Youtube className="h-3 w-3" /> YouTube
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Duration */}
+      {/* Duration — hidden on mobile */}
       {video.duration && (
-        <div className="flex items-center gap-1 shrink-0 text-xs text-slate-400">
+        <div className="hidden sm:flex items-center gap-1 shrink-0 text-xs text-slate-400">
           <Clock className="h-3 w-3" />
           {video.duration}
         </div>
@@ -213,9 +225,9 @@ function SortableVideoRow({
       {/* Preview */}
       <button
         onClick={() => onPreview(video)}
-        className="shrink-0 flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+        className="shrink-0 flex items-center gap-1 rounded-lg border border-slate-200 px-2 sm:px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
       >
-        <Eye className="h-3.5 w-3.5" /> Preview
+        <Eye className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Preview</span>
       </button>
 
       {/* Delete */}

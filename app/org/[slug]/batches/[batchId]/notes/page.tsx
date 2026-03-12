@@ -208,22 +208,23 @@ export default function NotesPage({
                 {note.description && (
                   <p className="text-xs text-slate-500 truncate">{note.description}</p>
                 )}
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5 truncate">
                   {note.uploadedBy} · {note.fileSize} · {formatDate(note.createdAt)}
                 </p>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   onClick={() => setPreviewNote(note)}
-                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2 sm:px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
                 >
-                  <Eye className="h-3.5 w-3.5" /> Preview
+                  <Eye className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Preview</span>
                 </button>
                 <button
                   onClick={() => toast.success("Downloading...")}
-                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2 sm:px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors"
                 >
-                  <Download className="h-3.5 w-3.5" /> Download
+                  <Download className="h-3.5 w-3.5" />{" "}
+                  <span className="hidden sm:inline">Download</span>
                 </button>
                 <button className="rounded-lg p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-colors">
                   <Trash2 className="h-4 w-4" />

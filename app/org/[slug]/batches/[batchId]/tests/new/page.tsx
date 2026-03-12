@@ -114,7 +114,7 @@ export default function NewTestPage({
                 className="flex w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 resize-none"
               />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   Available From
@@ -209,14 +209,14 @@ export default function NewTestPage({
                     />
                   ))}
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <input
                     value={q.correctAnswer}
                     onChange={(e) => updateQuestion(q.id, "correctAnswer", e.target.value)}
                     placeholder="Correct answer"
-                    className="flex h-8 w-full rounded-lg border border-green-200 bg-green-50 px-3 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                    className="flex h-8 w-full sm:flex-1 rounded-lg border border-green-200 bg-green-50 px-3 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
                   />
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 sm:w-28">
                     <span className="text-xs text-slate-500 shrink-0">Marks</span>
                     <input
                       type="number"
@@ -225,7 +225,7 @@ export default function NewTestPage({
                       className="flex h-8 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                     />
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 sm:w-24">
                     <span className="text-xs text-slate-500 shrink-0">-ve</span>
                     <input
                       type="number"

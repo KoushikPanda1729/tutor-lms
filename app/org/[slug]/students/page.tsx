@@ -67,47 +67,47 @@ function StudentPanel({ student, onClose }: { student: Student; onClose: () => v
 
         <div className="flex-1 overflow-y-auto">
           {/* Profile hero */}
-          <div className="px-6 pt-6 pb-5 border-b border-slate-100">
+          <div className="px-5 pt-5 pb-4 border-b border-slate-100">
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                <span className="text-lg font-bold text-slate-600">
+              <div className="h-14 w-14 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 ring-2 ring-indigo-50">
+                <span className="text-base font-bold text-indigo-600">
                   {getInitials(student.name)}
                 </span>
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">{student.name}</h2>
-                <p className="text-sm text-slate-400">{student.email}</p>
-                <div className="flex items-center gap-1.5 mt-1.5">
+              <div className="min-w-0">
+                <h2 className="text-base font-bold text-slate-900 truncate">{student.name}</h2>
+                <p className="text-xs text-slate-400 truncate">{student.email}</p>
+                <div className="inline-flex items-center gap-1.5 mt-1.5 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-0.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-medium text-emerald-600">Active</span>
+                  <span className="text-[11px] font-semibold text-emerald-600">Active</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 border-b border-slate-100">
+          <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100 bg-slate-50/50">
             {[
-              { icon: BookOpen, label: "Batches", value: batches.length },
-              { icon: ClipboardList, label: "Tests", value: 12 },
-              { icon: CheckCircle2, label: "Attendance", value: "87%" },
+              { icon: BookOpen, label: "Batches", value: batches.length, color: "text-indigo-600" },
+              { icon: ClipboardList, label: "Tests", value: 12, color: "text-amber-600" },
+              { icon: CheckCircle2, label: "Attendance", value: "87%", color: "text-emerald-600" },
             ].map((s) => (
-              <div key={s.label} className="flex flex-col items-center py-4 gap-1">
-                <p className="text-xl font-bold text-slate-900">{s.value}</p>
-                <div className="flex items-center gap-1 text-xs text-slate-400">
+              <div key={s.label} className="flex flex-col items-center py-3.5 gap-0.5">
+                <p className={cn("text-xl font-bold", s.color)}>{s.value}</p>
+                <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-0.5">
                   <s.icon className="h-3 w-3" /> {s.label}
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="px-6 py-5 space-y-6">
+          <div className="px-5 py-4 space-y-5">
             {/* Contact */}
             <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">
                 Contact
               </p>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {[
                   { icon: Mail, value: student.email },
                   { icon: Phone, value: student.phone },
@@ -117,8 +117,8 @@ function StudentPanel({ student, onClose }: { student: Student; onClose: () => v
                     key={i}
                     className="flex items-center gap-3 rounded-xl bg-slate-50 border border-slate-100 px-4 py-2.5"
                   >
-                    <item.icon className="h-4 w-4 text-slate-400 shrink-0" />
-                    <span className="text-sm text-slate-700">{item.value}</span>
+                    <item.icon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <span className="text-sm text-slate-700 truncate">{item.value}</span>
                   </div>
                 ))}
               </div>
@@ -126,17 +126,17 @@ function StudentPanel({ student, onClose }: { student: Student; onClose: () => v
 
             {/* Batches */}
             <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">
                 Enrolled Batches
               </p>
               {batches.length === 0 ? (
                 <p className="text-sm text-slate-400">Not enrolled in any batch</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {batches.map((b) => (
                     <div
                       key={b.id}
-                      className="flex items-center gap-3 border border-slate-200 rounded-xl px-4 py-3"
+                      className="flex items-center gap-3 border border-slate-200 rounded-xl px-3.5 py-2.5"
                     >
                       <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
                         <BookOpen className="h-4 w-4 text-indigo-500" />
@@ -163,10 +163,10 @@ function StudentPanel({ student, onClose }: { student: Student; onClose: () => v
 
             {/* Recent tests */}
             <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">
                 Recent Test Scores
               </p>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {[
                   { name: "Physics Mock Test 3", score: 88, date: "5 Mar 2026" },
                   { name: "Chemistry Unit Test", score: 74, date: "28 Feb 2026" },
@@ -174,26 +174,24 @@ function StudentPanel({ student, onClose }: { student: Student; onClose: () => v
                 ].map((t) => (
                   <div
                     key={t.name}
-                    className="flex items-center gap-3 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3"
+                    className="flex items-center gap-3 rounded-xl bg-slate-50 border border-slate-100 px-4 py-2.5"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-800 truncate">{t.name}</p>
                       <p className="text-xs text-slate-400">{t.date}</p>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <span
-                        className={cn(
-                          "text-sm font-bold",
-                          t.score >= 85
-                            ? "text-emerald-600"
-                            : t.score >= 70
-                              ? "text-amber-500"
-                              : "text-red-500"
-                        )}
-                      >
-                        {t.score}%
-                      </span>
-                    </div>
+                    <span
+                      className={cn(
+                        "text-sm font-bold shrink-0",
+                        t.score >= 85
+                          ? "text-emerald-600"
+                          : t.score >= 70
+                            ? "text-amber-500"
+                            : "text-red-500"
+                      )}
+                    >
+                      {t.score}%
+                    </span>
                   </div>
                 ))}
               </div>
@@ -241,23 +239,25 @@ export default function StudentsPage({ params }: { params: Promise<{ slug: strin
               <DialogHeader>
                 <DialogTitle>Invite Students</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 overflow-hidden">
                 <p className="text-sm text-slate-500">
                   Share this link with students to join your coaching center.
                 </p>
-                <div className="flex items-center gap-2 bg-slate-50 rounded-xl p-3 border border-slate-200">
-                  <p className="text-xs font-mono text-slate-700 flex-1 truncate">{inviteLink}</p>
+                <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200 w-full min-w-0">
+                  <p className="text-xs font-mono text-slate-700 flex-1 min-w-0 truncate">
+                    {inviteLink}
+                  </p>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(inviteLink);
                       toast.success("Copied!");
                     }}
-                    className="shrink-0 text-indigo-600 hover:text-indigo-700"
+                    className="shrink-0 h-7 w-7 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {activeBatches.map((batch) => (
                     <button
                       key={batch.id}
@@ -281,20 +281,20 @@ export default function StudentsPage({ params }: { params: Promise<{ slug: strin
       />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row gap-2">
         {/* Search */}
-        <div className="relative shrink-0">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search students..."
-            className="h-9 w-56 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            className="h-9 w-full sm:w-56 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
           />
         </div>
 
         {/* Filter pills */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           {[
             { id: "all", label: "All", count: mockStudents.length },
             ...activeBatches.map((b) => ({
@@ -307,7 +307,7 @@ export default function StudentsPage({ params }: { params: Promise<{ slug: strin
               key={tab.id}
               onClick={() => setBatchFilter(tab.id)}
               className={cn(
-                "h-8 px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap",
+                "h-8 px-3 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0",
                 batchFilter === tab.id
                   ? "bg-slate-900 text-white shadow-sm"
                   : "bg-white border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
@@ -336,24 +336,24 @@ export default function StudentsPage({ params }: { params: Promise<{ slug: strin
         />
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Column headers — must match row layout exactly */}
-          <div className="flex items-center px-5 py-2.5 bg-slate-50 border-b border-slate-100">
-            <div className="w-56 shrink-0">
+          {/* Column headers */}
+          <div className="flex items-center px-4 sm:px-5 py-2.5 bg-slate-50 border-b border-slate-100">
+            <div className="w-40 sm:w-56 shrink-0">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Student
               </p>
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="hidden sm:block flex-1 min-w-0">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Contact
               </p>
             </div>
-            <div className="w-48 shrink-0">
+            <div className="flex-1 min-w-0 sm:w-48 sm:flex-none">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Batches
               </p>
             </div>
-            <div className="w-28 shrink-0 text-right">
+            <div className="hidden sm:block w-28 shrink-0 text-right">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Joined
               </p>
@@ -369,12 +369,12 @@ export default function StudentsPage({ params }: { params: Promise<{ slug: strin
                 key={student.id}
                 onClick={() => setSelected(student)}
                 className={cn(
-                  "flex items-center px-5 py-3 cursor-pointer group transition-colors hover:bg-slate-50",
+                  "flex items-center px-4 sm:px-5 py-3 cursor-pointer group transition-colors hover:bg-slate-50",
                   i !== 0 && "border-t border-slate-100"
                 )}
               >
-                {/* Student — w-56 */}
-                <div className="w-56 shrink-0 flex items-center gap-3 min-w-0">
+                {/* Student — fixed w-40 mobile, w-56 desktop */}
+                <div className="w-40 sm:w-56 shrink-0 flex items-center gap-2.5 min-w-0">
                   <div
                     className={`h-8 w-8 rounded-full ${color.bg} flex items-center justify-center shrink-0`}
                   >
@@ -393,8 +393,8 @@ export default function StudentsPage({ params }: { params: Promise<{ slug: strin
                   </div>
                 </div>
 
-                {/* Contact — flex-1 */}
-                <div className="flex-1 min-w-0 space-y-0.5">
+                {/* Contact — hidden on mobile */}
+                <div className="hidden sm:block flex-1 min-w-0 space-y-0.5">
                   <p className="text-xs text-slate-600 flex items-center gap-1.5 truncate">
                     <Mail className="h-3 w-3 text-slate-300 shrink-0" /> {student.email}
                   </p>
@@ -403,29 +403,29 @@ export default function StudentsPage({ params }: { params: Promise<{ slug: strin
                   </p>
                 </div>
 
-                {/* Batches — w-48 */}
-                <div className="w-48 shrink-0 flex items-center gap-1.5">
+                {/* Batches — flex-1 on mobile, fixed w-48 on desktop */}
+                <div className="flex-1 min-w-0 sm:w-48 sm:flex-none flex items-center gap-1.5 overflow-hidden">
                   {batches.slice(0, 2).map((b) => (
                     <span
                       key={b.id}
-                      className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg ${color.light} ${color.text} whitespace-nowrap`}
+                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg ${color.light} ${color.text} whitespace-nowrap shrink-0`}
                     >
                       {b.subject}
                     </span>
                   ))}
                   {batches.length > 2 && (
-                    <span className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-slate-100 text-slate-500">
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 shrink-0">
                       +{batches.length - 2}
                     </span>
                   )}
                 </div>
 
-                {/* Joined — w-28 */}
-                <p className="w-28 shrink-0 text-right text-xs text-slate-400 whitespace-nowrap">
+                {/* Joined — hidden on mobile */}
+                <p className="hidden sm:block w-28 shrink-0 text-right text-xs text-slate-400 whitespace-nowrap">
                   {formatDate(student.createdAt)}
                 </p>
 
-                {/* Arrow — w-5 */}
+                {/* Arrow */}
                 <div className="w-5 shrink-0 flex justify-end">
                   <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
                 </div>

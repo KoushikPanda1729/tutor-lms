@@ -100,12 +100,12 @@ function SuperAdminSettingsContent() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <p className="text-xs text-slate-400">Changes apply globally across all orgs.</p>
                 <button
                   onClick={save}
                   disabled={saving}
-                  className="flex items-center gap-2 h-9 px-5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-sm"
+                  className="flex items-center justify-center gap-2 h-9 px-5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-sm"
                 >
                   {saving ? (
                     <>
@@ -156,9 +156,9 @@ function SuperAdminSettingsContent() {
                 ].map((item) => (
                   <div
                     key={item.key}
-                    className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-slate-100 bg-slate-50/50"
                   >
-                    <div className="flex-1 min-w-0 mr-4">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-slate-900">{item.title}</p>
                       <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
                     </div>
@@ -187,7 +187,7 @@ function SuperAdminSettingsContent() {
               <div className="mt-6 pt-5 border-t border-slate-100 flex justify-end">
                 <button
                   onClick={save}
-                  className="flex items-center gap-2 h-9 px-5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-all shadow-sm"
+                  className="flex items-center justify-center gap-2 h-9 w-full sm:w-auto px-5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-all shadow-sm"
                 >
                   <Save className="h-3.5 w-3.5" /> Save Changes
                 </button>
@@ -235,7 +235,7 @@ function SuperAdminSettingsContent() {
               <div className="mt-6 pt-5 border-t border-slate-100 flex justify-end">
                 <button
                   onClick={save}
-                  className="flex items-center gap-2 h-9 px-5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-all shadow-sm"
+                  className="flex items-center justify-center gap-2 h-9 w-full sm:w-auto px-5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-all shadow-sm"
                 >
                   <Save className="h-3.5 w-3.5" /> Save Configuration
                 </button>

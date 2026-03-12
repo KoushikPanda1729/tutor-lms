@@ -77,7 +77,7 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
     <aside
       className={cn(
         "h-full bg-white border-r border-slate-200 flex flex-col transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-16" : "w-72"
       )}
     >
       {/* Logo */}

@@ -13,6 +13,11 @@ import {
   Globe,
   CreditCard,
   ClipboardList,
+  Users,
+  BookOpen,
+  FileText,
+  UserCheck,
+  CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -31,6 +36,16 @@ const settingsTabs = [
   { label: "Billing", tab: "billing", icon: CreditCard },
 ];
 
+const orgDetailTabs = [
+  { label: "Overview", tab: "overview", icon: LayoutDashboard },
+  { label: "Batches", tab: "batches", icon: BookOpen },
+  { label: "Students", tab: "students", icon: Users },
+  { label: "Teachers", tab: "teachers", icon: UserCheck },
+  { label: "Content", tab: "content", icon: FileText },
+  { label: "Tests", tab: "tests", icon: ClipboardList },
+  { label: "Attendance", tab: "attendance", icon: CalendarCheck },
+];
+
 export function SuperAdminSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,8 +54,16 @@ export function SuperAdminSidebar() {
   const [settingsOpen, setSettingsOpen] = useState(isOnSettings);
   const router = useRouter();
 
+  // Detect org detail page: /super-admin/organizations/[orgId]
+  const pathParts = pathname.split("/");
+  const isOnOrgDetail = pathParts[2] === "organizations" && !!pathParts[3] && pathParts[3] !== "";
+  const currentOrgId = isOnOrgDetail ? pathParts[3] : null;
+  const activeOrgTab = searchParams.get("tab") ?? "overview";
+  // Always expanded when on an org detail page (derived from URL, not state)
+  const orgOpen = isOnOrgDetail;
+
   return (
-    <aside className="h-full w-64 bg-white border-r border-slate-200 flex flex-col">
+    <aside className="h-full w-72 bg-white border-r border-slate-200 flex flex-col">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-slate-100">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600">
@@ -58,6 +81,9 @@ export function SuperAdminSidebar() {
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
           const isSettingsItem = item.href.includes("settings");
+          const isOrgsItem = item.href.includes("organizations");
+          const hasSubNav = isSettingsItem || (isOrgsItem && isOnOrgDetail);
+          const isExpanded = isSettingsItem ? settingsOpen : isOrgsItem ? orgOpen : false;
 
           return (
             <div key={item.href}>
@@ -66,6 +92,9 @@ export function SuperAdminSidebar() {
                   if (isSettingsItem) {
                     setSettingsOpen((o) => !o);
                     if (!isOnSettings) router.push(item.href);
+                  } else if (isOrgsItem && isOnOrgDetail) {
+                    // sub-nav is always visible on org detail; clicking navigates back to list
+                    router.push(item.href);
                   } else {
                     router.push(item.href);
                   }
@@ -86,17 +115,51 @@ export function SuperAdminSidebar() {
                   <Icon className={cn("h-3.5 w-3.5", isActive ? "text-white" : "text-slate-500")} />
                 </span>
                 <span className="flex-1 text-left">{item.label}</span>
-                {isSettingsItem && (
+                {hasSubNav && (
                   <ChevronDown
                     className={cn(
                       "h-3.5 w-3.5 transition-transform duration-200",
                       isActive ? "text-indigo-400" : "text-slate-400",
-                      settingsOpen ? "rotate-0" : "-rotate-90"
+                      isExpanded ? "rotate-0" : "-rotate-90"
                     )}
                   />
                 )}
               </button>
 
+              {/* Org detail sub-nav */}
+              {isOrgsItem && isOnOrgDetail && orgOpen && currentOrgId && (
+                <div className="mt-1 ml-3 pl-4 border-l-2 border-slate-100 space-y-0.5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 pt-2 pb-1">
+                    Organization
+                  </p>
+                  {orgDetailTabs.map((tab) => {
+                    const TabIcon = tab.icon;
+                    const isTabActive = activeOrgTab === tab.tab;
+                    return (
+                      <Link
+                        key={tab.tab}
+                        href={`/super-admin/organizations/${currentOrgId}?tab=${tab.tab}`}
+                        className={cn(
+                          "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-all",
+                          isTabActive
+                            ? "bg-indigo-50 text-indigo-700"
+                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                        )}
+                      >
+                        <TabIcon
+                          className={cn(
+                            "h-3.5 w-3.5",
+                            isTabActive ? "text-indigo-500" : "text-slate-400"
+                          )}
+                        />
+                        {tab.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Settings sub-nav */}
               {isSettingsItem && settingsOpen && (
                 <div className="mt-1 ml-3 pl-4 border-l-2 border-slate-100 space-y-0.5">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 pt-2 pb-1">

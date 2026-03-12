@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Menu, Bell } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
@@ -12,17 +13,28 @@ interface ShellClientProps {
   userName?: string;
   userEmail?: string;
   /** Pass the collapsed sidebar width so main content shifts correctly on desktop */
-  desktopSidebarWidth?: "w-64" | "w-16";
+  desktopSidebarWidth?: "w-72" | "w-16";
 }
 
-export function ShellClient({
+function ShellInner({
   sidebar,
   children,
   userName = "User",
   userEmail = "",
-  desktopSidebarWidth = "w-64",
+  desktopSidebarWidth = "w-72",
 }: ShellClientProps) {
+  const pathname = usePathname();
+  useSearchParams(); // keep Suspense boundary happy
+
   const [open, setOpen] = useState(false);
+  const [lastPathname, setLastPathname] = useState(pathname);
+
+  // Render-phase state reset: React-recommended pattern for resetting state
+  // when a derived value changes (pathname only, not search params).
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setOpen(false);
+  }
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -37,7 +49,7 @@ export function ShellClient({
       {/* Sidebar — fixed, slides in/out on mobile */}
       <div
         className={cn(
-          "fixed left-0 top-0 h-screen w-64 z-50 transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 h-screen w-72 z-50 transition-transform duration-300 ease-in-out",
           "lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
@@ -49,7 +61,7 @@ export function ShellClient({
       <div
         className={cn(
           "flex flex-col flex-1 min-w-0 overflow-hidden transition-all duration-300",
-          desktopSidebarWidth === "w-16" ? "lg:ml-16" : "lg:ml-64"
+          desktopSidebarWidth === "w-16" ? "lg:ml-16" : "lg:ml-72"
         )}
       >
         {/* Top bar */}
@@ -89,5 +101,13 @@ export function ShellClient({
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
       </div>
     </div>
+  );
+}
+
+export function ShellClient(props: ShellClientProps) {
+  return (
+    <Suspense fallback={null}>
+      <ShellInner {...props} />
+    </Suspense>
   );
 }

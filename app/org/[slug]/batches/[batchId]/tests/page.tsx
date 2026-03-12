@@ -54,13 +54,13 @@ export default function TestsPage({
                   <ClipboardList className="h-5 w-5 text-amber-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
                     <p className="text-sm font-semibold text-slate-900">{test.title}</p>
                     <Badge variant={testStatusVariant(test.status)} className="capitalize">
                       {test.status}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-slate-400">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {test.duration} min
@@ -70,7 +70,9 @@ export default function TestsPage({
                       {test.totalMarks} marks
                     </span>
                     <span>{test.questions.length} questions</span>
-                    <span>From {formatDateTime(test.availableFrom)}</span>
+                    <span className="hidden sm:inline">
+                      From {formatDateTime(test.availableFrom)}
+                    </span>
                   </div>
                 </div>
                 <Link href={`/org/${slug}/batches/${batchId}/tests/${test.id}`}>

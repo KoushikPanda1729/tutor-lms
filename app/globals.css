@@ -31,6 +31,15 @@
 
 /* Dark mode disabled — app uses explicit light colors throughout */
 
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 * {
   box-sizing: border-box;
 }

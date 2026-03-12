@@ -327,17 +327,18 @@ export default function BatchStudentsPage({
                     {student.name}
                   </p>
                   <div className="flex items-center gap-3 mt-0.5">
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <Mail className="h-3 w-3" /> {student.email}
+                    <span className="flex items-center gap-1 text-xs text-slate-400 truncate">
+                      <Mail className="h-3 w-3 shrink-0" />{" "}
+                      <span className="truncate">{student.email}</span>
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
+                    <span className="hidden sm:flex items-center gap-1 text-xs text-slate-400 shrink-0">
                       <Phone className="h-3 w-3" /> {student.phone}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-5 shrink-0">
+                <div className="flex items-center gap-3 sm:gap-5 shrink-0">
                   {pct !== null && (
-                    <div className="text-center">
+                    <div className="hidden sm:block text-center">
                       <p
                         className={cn(
                           "text-sm font-bold",
@@ -352,6 +353,16 @@ export default function BatchStudentsPage({
                       </p>
                       <p className="text-[10px] text-slate-400">attend.</p>
                     </div>
+                  )}
+                  {pct !== null && (
+                    <span
+                      className={cn(
+                        "sm:hidden text-xs font-bold",
+                        pct >= 75 ? "text-green-600" : pct >= 50 ? "text-amber-500" : "text-red-500"
+                      )}
+                    >
+                      {pct}%
+                    </span>
                   )}
                   <div className="text-center">
                     <p className="text-sm font-bold text-indigo-600">{submissions.length}</p>

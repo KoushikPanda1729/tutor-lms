@@ -60,18 +60,18 @@ export default function OrganizationsPage() {
       />
 
       {/* ── Toolbar ────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <div className="relative shrink-0">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or city..."
-            className="h-9 w-64 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            className="h-9 w-full sm:w-64 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
           />
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {tabs.map((t) => (
             <button
               key={t}
@@ -106,32 +106,32 @@ export default function OrganizationsPage() {
         />
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Column headers */}
-          <div className="flex items-center px-5 py-2.5 bg-slate-50 border-b border-slate-100">
-            <div className="w-64 shrink-0">
+          {/* Column headers — hidden on mobile */}
+          <div className="hidden md:flex items-center px-5 py-2.5 bg-slate-50 border-b border-slate-100">
+            <div className="flex-1 min-w-0">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Organization
               </p>
             </div>
-            <div className="w-32 shrink-0">
+            <div className="w-28 shrink-0 hidden lg:block">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Location
               </p>
             </div>
-            <div className="w-28 shrink-0">
+            <div className="w-24 shrink-0 hidden lg:block">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Plan</p>
             </div>
-            <div className="w-24 shrink-0 text-right">
+            <div className="w-24 shrink-0 text-right hidden xl:block">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Students
               </p>
             </div>
-            <div className="w-24 shrink-0 text-right">
+            <div className="w-24 shrink-0 text-right hidden xl:block">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Batches
               </p>
             </div>
-            <div className="flex-1 min-w-0 text-right">
+            <div className="w-28 shrink-0 text-right hidden lg:block">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Joined
               </p>
@@ -152,81 +152,116 @@ export default function OrganizationsPage() {
                 key={org.id}
                 href={`/super-admin/organizations/${org.id}`}
                 className={cn(
-                  "flex items-center px-5 py-3 cursor-pointer group transition-colors hover:bg-slate-50",
+                  "group transition-colors hover:bg-slate-50",
                   i !== 0 && "border-t border-slate-100"
                 )}
               >
-                {/* Organization — w-64 */}
-                <div className="w-64 shrink-0 flex items-center gap-3 min-w-0">
-                  <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                {/* Mobile card layout */}
+                <div className="flex items-center gap-3 px-4 py-3 md:hidden">
+                  <div className="h-9 w-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
                     <span className="text-[11px] font-bold text-indigo-600">
                       {getInitials(org.name)}
                     </span>
                   </div>
-                  <div className="min-w-0">
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
                       {org.name}
                     </p>
-                    <p className="text-xs text-slate-400 flex items-center gap-1 truncate">
-                      <Globe className="h-2.5 w-2.5 shrink-0" />
-                      {org.slug}.tutorlms.com
-                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-slate-400">{org.city}</span>
+                      <span
+                        className={cn(
+                          "text-[10px] font-bold px-1.5 py-0.5 rounded capitalize",
+                          plan.bg,
+                          plan.text
+                        )}
+                      >
+                        {org.plan}
+                      </span>
+                    </div>
                   </div>
-                </div>
-
-                {/* Location — w-32 */}
-                <div className="w-32 shrink-0 flex items-center gap-1.5">
-                  <MapPin className="h-3 w-3 text-slate-300 shrink-0" />
-                  <span className="text-sm text-slate-600 truncate">{org.city}</span>
-                </div>
-
-                {/* Plan — w-28 */}
-                <div className="w-28 shrink-0">
                   <span
                     className={cn(
-                      "text-[11px] font-bold px-2.5 py-1 rounded-lg capitalize",
-                      plan.bg,
-                      plan.text
-                    )}
-                  >
-                    {org.plan}
-                  </span>
-                </div>
-
-                {/* Students — w-24 */}
-                <div className="w-24 shrink-0 flex items-center justify-end gap-1.5">
-                  <Users className="h-3 w-3 text-slate-300 shrink-0" />
-                  <span className="text-sm font-semibold text-slate-700">{org.totalStudents}</span>
-                </div>
-
-                {/* Batches — w-24 */}
-                <div className="w-24 shrink-0 flex items-center justify-end gap-1.5">
-                  <BookOpen className="h-3 w-3 text-slate-300 shrink-0" />
-                  <span className="text-sm font-semibold text-slate-700">{org.totalBatches}</span>
-                </div>
-
-                {/* Joined — flex-1 */}
-                <p className="flex-1 min-w-0 text-right text-xs text-slate-400 whitespace-nowrap">
-                  {formatDate(org.createdAt)}
-                </p>
-
-                {/* Status — w-28 */}
-                <div className="w-28 shrink-0 flex justify-center">
-                  <span
-                    className={cn(
-                      "flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize",
+                      "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full capitalize shrink-0",
                       status.bg,
                       status.text
                     )}
                   >
-                    <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", status.dot)} />
+                    <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
                     {org.status}
                   </span>
+                  <ChevronRight className="h-4 w-4 text-slate-300 shrink-0" />
                 </div>
 
-                {/* Arrow — w-5 */}
-                <div className="w-5 shrink-0 flex justify-end">
-                  <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
+                {/* Desktop table row layout */}
+                <div className="hidden md:flex items-center px-5 py-3">
+                  {/* Org */}
+                  <div className="flex-1 min-w-0 flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                      <span className="text-[11px] font-bold text-indigo-600">
+                        {getInitials(org.name)}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                        {org.name}
+                      </p>
+                      <p className="text-xs text-slate-400 flex items-center gap-1 truncate">
+                        <Globe className="h-2.5 w-2.5 shrink-0" />
+                        {org.slug}.tutorlms.com
+                      </p>
+                    </div>
+                  </div>
+                  {/* Location */}
+                  <div className="w-28 shrink-0 hidden lg:flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3 text-slate-300 shrink-0" />
+                    <span className="text-sm text-slate-600 truncate">{org.city}</span>
+                  </div>
+                  {/* Plan */}
+                  <div className="w-24 shrink-0 hidden lg:block">
+                    <span
+                      className={cn(
+                        "text-[11px] font-bold px-2.5 py-1 rounded-lg capitalize",
+                        plan.bg,
+                        plan.text
+                      )}
+                    >
+                      {org.plan}
+                    </span>
+                  </div>
+                  {/* Students */}
+                  <div className="w-24 shrink-0 hidden xl:flex items-center justify-end gap-1.5">
+                    <Users className="h-3 w-3 text-slate-300 shrink-0" />
+                    <span className="text-sm font-semibold text-slate-700">
+                      {org.totalStudents}
+                    </span>
+                  </div>
+                  {/* Batches */}
+                  <div className="w-24 shrink-0 hidden xl:flex items-center justify-end gap-1.5">
+                    <BookOpen className="h-3 w-3 text-slate-300 shrink-0" />
+                    <span className="text-sm font-semibold text-slate-700">{org.totalBatches}</span>
+                  </div>
+                  {/* Joined */}
+                  <p className="w-28 shrink-0 text-right text-xs text-slate-400 hidden lg:block whitespace-nowrap">
+                    {formatDate(org.createdAt)}
+                  </p>
+                  {/* Status */}
+                  <div className="w-28 shrink-0 flex justify-center">
+                    <span
+                      className={cn(
+                        "flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full capitalize",
+                        status.bg,
+                        status.text
+                      )}
+                    >
+                      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", status.dot)} />
+                      {org.status}
+                    </span>
+                  </div>
+                  {/* Arrow */}
+                  <div className="w-5 shrink-0 flex justify-end">
+                    <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
+                  </div>
                 </div>
               </Link>
             );

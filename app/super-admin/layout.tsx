@@ -6,7 +6,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
   return (
     <ShellClient
       sidebar={
-        <Suspense fallback={<div className="w-64 bg-white border-r border-slate-200 h-screen" />}>
+        <Suspense fallback={<div className="w-72 bg-white border-r border-slate-200 h-screen" />}>
           <SuperAdminSidebar />
         </Suspense>
       }
