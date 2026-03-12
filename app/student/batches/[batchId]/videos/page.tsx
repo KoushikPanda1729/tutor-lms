@@ -4,6 +4,7 @@ import { useState, use } from "react";
 import { Video, Play, Clock, Youtube, Eye, X, ExternalLink, GripVertical } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { mockVideos } from "@/lib/mock-data";
+import { BatchTabBar } from "@/components/student/batch-tab-bar";
 import { formatDate } from "@/lib/utils";
 import {
   DndContext,
@@ -140,7 +141,7 @@ function SortableVideoRow({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3 shadow-sm transition-all ${
+      className={`flex items-center gap-2.5 rounded-2xl border bg-white px-3 py-3 shadow-sm transition-all ${
         isDragging
           ? "shadow-lg border-indigo-300 ring-1 ring-indigo-200"
           : "border-slate-200 hover:border-slate-300 hover:shadow-md"
@@ -150,13 +151,13 @@ function SortableVideoRow({
       <button
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 text-slate-300 hover:text-slate-500 rounded transition-colors shrink-0 touch-none"
+        className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 rounded transition-colors shrink-0 touch-none"
       >
         <GripVertical className="h-4 w-4" />
       </button>
 
       {/* Index */}
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">
         {index + 1}
       </span>
 
@@ -167,36 +168,29 @@ function SortableVideoRow({
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-900 truncate">{video.title}</p>
-        <div className="flex items-center gap-3 mt-0.5">
-          {video.uploadedBy && <span className="text-xs text-slate-400">{video.uploadedBy}</span>}
-          <span className="text-xs text-slate-300">·</span>
-          <span className="text-xs text-slate-400">{formatDate(video.createdAt)}</span>
+        <p className="text-xs font-bold text-slate-900 truncate">{video.title}</p>
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+          {video.duration && (
+            <span className="flex items-center gap-0.5 text-[11px] text-slate-400">
+              <Clock className="h-3 w-3 shrink-0" />
+              {video.duration}
+            </span>
+          )}
           {video.type === "youtube" && (
-            <>
-              <span className="text-xs text-slate-300">·</span>
-              <span className="flex items-center gap-1 text-xs text-red-500">
-                <Youtube className="h-3 w-3" /> YouTube
-              </span>
-            </>
+            <span className="flex items-center gap-0.5 text-[11px] text-red-500">
+              <Youtube className="h-3 w-3 shrink-0" />
+              YT
+            </span>
           )}
         </div>
       </div>
 
-      {/* Duration */}
-      {video.duration && (
-        <div className="flex items-center gap-1 shrink-0 text-xs text-slate-400">
-          <Clock className="h-3 w-3" />
-          {video.duration}
-        </div>
-      )}
-
-      {/* Preview button */}
+      {/* Watch button */}
       <button
         onClick={() => onPreview(video)}
-        className="shrink-0 flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition-colors"
+        className="shrink-0 h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 transition-colors"
       >
-        <Eye className="h-3.5 w-3.5" /> Watch
+        <Eye className="h-3.5 w-3.5" />
       </button>
     </div>
   );
@@ -223,6 +217,7 @@ export default function StudentVideosPage({ params }: { params: Promise<{ batchI
 
   return (
     <div className="space-y-4">
+      <BatchTabBar batchId={batchId} active="videos" />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

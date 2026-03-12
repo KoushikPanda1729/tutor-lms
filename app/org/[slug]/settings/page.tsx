@@ -111,7 +111,7 @@ function SettingsContent({ params }: { params: Promise<{ slug: string }> }) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">
                         City
@@ -187,7 +187,7 @@ function SettingsContent({ params }: { params: Promise<{ slug: string }> }) {
                   <button
                     onClick={save}
                     disabled={saving}
-                    className="flex items-center gap-2 h-9 px-5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-sm shadow-indigo-200"
+                    className="flex items-center gap-1.5 h-8 px-4 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-sm shadow-indigo-200 whitespace-nowrap"
                   >
                     {saving ? (
                       <>
@@ -242,7 +242,7 @@ function SettingsContent({ params }: { params: Promise<{ slug: string }> }) {
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
                   What&apos;s included
                 </p>
-                <div className="grid grid-cols-2 gap-2.5 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-6">
                   {[
                     "Unlimited students",
                     "Unlimited batches",
@@ -258,7 +258,7 @@ function SettingsContent({ params }: { params: Promise<{ slug: string }> }) {
                   ))}
                 </div>
 
-                <div className="border-t border-slate-100 pt-5 flex gap-3">
+                <div className="border-t border-slate-100 pt-5 flex flex-wrap gap-3">
                   <button
                     onClick={() => toast.success("Redirecting to billing portal…")}
                     className="flex items-center gap-2 h-9 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
@@ -293,7 +293,7 @@ function SettingsContent({ params }: { params: Promise<{ slug: string }> }) {
               </div>
 
               <div className="border border-red-100 bg-red-50/50 rounded-xl p-5">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div>
                     <p className="text-sm font-bold text-slate-900">Delete Institute</p>
                     <p className="text-xs text-slate-500 mt-1 leading-relaxed">
@@ -304,7 +304,7 @@ function SettingsContent({ params }: { params: Promise<{ slug: string }> }) {
                   </div>
                   <button
                     onClick={() => toast.error("Please contact support to delete your account.")}
-                    className="flex items-center gap-2 h-9 px-4 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors shrink-0 shadow-sm"
+                    className="flex items-center gap-2 h-9 px-4 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors shrink-0 shadow-sm self-start"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Delete

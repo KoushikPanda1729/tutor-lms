@@ -13,10 +13,10 @@ const availableTests = myTests.filter((t) => t.status === "available");
 
 export default function StudentDashboard() {
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader title="My Dashboard" description="Welcome back, Aarav!" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-3">
         <StatCard
           title="Enrolled Batches"
           value={myBatches.length}
@@ -40,7 +40,7 @@ export default function StudentDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">

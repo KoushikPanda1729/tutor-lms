@@ -60,17 +60,19 @@ function TeacherDetailPanel({ teacher, onClose }: { teacher: Teacher; onClose: (
           {/* Profile */}
           <div className="px-6 pt-6 pb-5 border-b border-slate-100">
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                <span className="text-lg font-bold text-slate-600">
+              <div className="h-14 w-14 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 ring-2 ring-indigo-50">
+                <span className="text-lg font-bold text-indigo-600">
                   {getInitials(teacher.name)}
                 </span>
               </div>
               <div>
                 <h2 className="text-lg font-bold text-slate-900">{teacher.name}</h2>
                 <p className="text-sm text-slate-400">{teacher.email}</p>
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-medium text-emerald-600">Active</span>
+                <div className="mt-1.5">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Active
+                  </span>
                 </div>
               </div>
             </div>
@@ -79,12 +81,22 @@ function TeacherDetailPanel({ teacher, onClose }: { teacher: Teacher; onClose: (
           {/* Stats */}
           <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100">
             {[
-              { icon: BookOpen, label: "Batches", value: assignedBatches.length },
-              { icon: Users, label: "Students", value: totalStudents },
-              { icon: ClipboardList, label: "Classes", value: totalClasses },
+              {
+                icon: BookOpen,
+                label: "Batches",
+                value: assignedBatches.length,
+                color: "text-indigo-600",
+              },
+              { icon: Users, label: "Students", value: totalStudents, color: "text-emerald-600" },
+              {
+                icon: ClipboardList,
+                label: "Classes",
+                value: totalClasses,
+                color: "text-amber-600",
+              },
             ].map((s) => (
               <div key={s.label} className="flex flex-col items-center py-4 gap-1">
-                <p className="text-xl font-bold text-slate-900">{s.value}</p>
+                <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
                 <div className="flex items-center gap-1 text-xs text-slate-400">
                   <s.icon className="h-3 w-3" /> {s.label}
                 </div>
@@ -267,19 +279,19 @@ export default function TeachersPage() {
       />
 
       {/* Toolbar */}
-      <div className="flex items-center gap-3">
-        <div className="relative shrink-0">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search teachers..."
-            className="h-9 w-56 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            className="h-9 w-full sm:w-56 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
           />
         </div>
 
         {/* Filter pills */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
           {[
             { id: "all", label: "All", count: teachers.length },
             ...activeBatches.map((b) => ({
@@ -322,22 +334,22 @@ export default function TeachersPage() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           {/* Column headers */}
           <div className="flex items-center px-5 py-2.5 bg-slate-50 border-b border-slate-100">
-            <div className="w-52 shrink-0">
+            <div className="w-40 sm:w-56 shrink-0">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Teacher
               </p>
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="hidden sm:block flex-1 min-w-0">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Contact
               </p>
             </div>
-            <div className="w-64 shrink-0">
+            <div className="flex-1 min-w-0 sm:w-48 sm:flex-none">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Batches
               </p>
             </div>
-            <div className="w-24 shrink-0 text-right">
+            <div className="hidden sm:block w-24 shrink-0 text-right">
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 Joined
               </p>
@@ -358,15 +370,15 @@ export default function TeachersPage() {
                   i !== 0 && "border-t border-slate-100"
                 )}
               >
-                {/* Teacher — w-52 */}
-                <div className="w-52 shrink-0 flex items-center gap-3 min-w-0">
-                  <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-                    <span className="text-[11px] font-bold text-slate-600">
+                {/* Teacher — w-40 sm:w-56 */}
+                <div className="w-40 sm:w-56 shrink-0 flex items-center gap-3 min-w-0">
+                  <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+                    <span className="text-[11px] font-bold text-indigo-600">
                       {getInitials(teacher.name)}
                     </span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                    <p className="text-xs font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
                       {teacher.name}
                     </p>
                     <div className="flex items-center gap-1 mt-0.5">
@@ -376,8 +388,8 @@ export default function TeachersPage() {
                   </div>
                 </div>
 
-                {/* Contact — flex-1 */}
-                <div className="flex-1 min-w-0 space-y-0.5">
+                {/* Contact — hidden sm:block flex-1 */}
+                <div className="hidden sm:block flex-1 min-w-0 space-y-0.5">
                   <p className="text-xs text-slate-600 flex items-center gap-1.5 truncate">
                     <Mail className="h-3 w-3 text-slate-300 shrink-0" /> {teacher.email}
                   </p>
@@ -386,25 +398,35 @@ export default function TeachersPage() {
                   </p>
                 </div>
 
-                {/* Batches — w-64 */}
-                <div className="w-64 shrink-0 flex items-center gap-1.5 flex-wrap">
+                {/* Batches — flex-1 sm:w-48 */}
+                <div className="flex-1 min-w-0 sm:w-48 sm:flex-none flex items-center gap-1.5 overflow-hidden">
+                  {/* Mobile: 1 pill */}
+                  <span className="sm:hidden text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 truncate max-w-[90px]">
+                    {assignedBatches[0]?.subject}
+                  </span>
+                  {assignedBatches.length > 1 && (
+                    <span className="sm:hidden text-[11px] font-semibold px-2 py-1 rounded-lg bg-slate-100 text-slate-500 shrink-0">
+                      +{assignedBatches.length - 1}
+                    </span>
+                  )}
+                  {/* Desktop: 2 pills */}
                   {assignedBatches.slice(0, 2).map((b) => (
                     <span
                       key={b.id}
-                      className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 whitespace-nowrap"
+                      className="hidden sm:inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 whitespace-nowrap"
                     >
                       {b.subject}
                     </span>
                   ))}
                   {assignedBatches.length > 2 && (
-                    <span className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-slate-100 text-slate-500">
+                    <span className="hidden sm:inline-flex text-[11px] font-semibold px-2 py-1 rounded-lg bg-slate-100 text-slate-500">
                       +{assignedBatches.length - 2}
                     </span>
                   )}
                 </div>
 
-                {/* Joined — w-24 */}
-                <p className="w-24 shrink-0 text-right text-xs text-slate-400 whitespace-nowrap">
+                {/* Joined — hidden sm:block w-24 */}
+                <p className="hidden sm:block w-24 shrink-0 text-right text-xs text-slate-400 whitespace-nowrap">
                   {formatDate(teacher.createdAt)}
                 </p>
 

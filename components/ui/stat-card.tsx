@@ -24,12 +24,12 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <div
-      className={cn("rounded-xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm", className)}
+      className={cn("rounded-xl border border-slate-200 bg-white p-3 sm:p-6 shadow-sm", className)}
     >
-      <div className="flex items-start sm:items-center justify-between gap-2">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-xs sm:text-sm font-medium text-slate-500 leading-tight">{title}</p>
-          <p className="mt-1 text-xl sm:text-2xl font-bold text-slate-900 leading-tight">{value}</p>
+          <p className="text-[10px] sm:text-sm font-medium text-slate-500 leading-tight">{title}</p>
+          <p className="mt-1 text-lg sm:text-2xl font-bold text-slate-900 leading-tight">{value}</p>
           {subtitle && <p className="mt-0.5 text-xs text-slate-400">{subtitle}</p>}
           {trend && (
             <p
@@ -43,8 +43,8 @@ export function StatCard({
             </p>
           )}
         </div>
-        <div className={cn("rounded-xl p-2 sm:p-3 shrink-0", iconBg)}>
-          <Icon className={cn("h-5 w-5 sm:h-6 sm:w-6", iconColor)} />
+        <div className={cn("hidden sm:flex rounded-xl p-3 shrink-0", iconBg)}>
+          <Icon className={cn("h-6 w-6", iconColor)} />
         </div>
       </div>
     </div>

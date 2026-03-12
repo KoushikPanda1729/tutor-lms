@@ -16,6 +16,7 @@ import { mockNotes } from "@/lib/mock-data";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { use } from "react";
+import { BatchTabBar } from "@/components/student/batch-tab-bar";
 
 type Note = (typeof mockNotes)[number];
 
@@ -77,6 +78,7 @@ export default function StudentNotesPage({ params }: { params: Promise<{ batchId
   return (
     <>
       <div className="space-y-4">
+        <BatchTabBar batchId={batchId} active="notes" />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -101,52 +103,56 @@ export default function StudentNotesPage({ params }: { params: Promise<{ batchId
                 onDragEnd={onDragEnd}
                 onDragOver={(e) => e.preventDefault()}
                 className={cn(
-                  "group flex items-center gap-4 bg-white rounded-2xl border border-slate-200 px-4 py-4 shadow-sm",
+                  "group bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-sm",
                   "hover:shadow-md hover:border-slate-300 transition-all cursor-grab active:cursor-grabbing active:opacity-60 active:scale-[0.99]"
                 )}
               >
-                <GripVertical className="h-4 w-4 text-slate-300 group-hover:text-slate-400 shrink-0 transition-colors" />
+                {/* Top row: drag + icon + title/meta + action buttons */}
+                <div className="flex items-center gap-3">
+                  <GripVertical className="h-4 w-4 text-slate-300 group-hover:text-slate-400 shrink-0 transition-colors" />
 
-                <div
-                  className={cn(
-                    "h-11 w-11 rounded-xl flex items-center justify-center shrink-0 border",
-                    c.bg,
-                    c.border
-                  )}
-                >
-                  <FileText className={cn("h-5 w-5", c.icon)} />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
-                    {note.title}
-                  </p>
-                  {note.description && (
-                    <p className="text-xs text-slate-500 truncate mt-0.5">{note.description}</p>
-                  )}
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    {note.fileSize && <span className="font-medium">{note.fileSize}</span>}
-                    {note.fileSize && " · "}
-                    Uploaded {formatDate(note.createdAt)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => openNote(note, c)}
-                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
+                  <div
+                    className={cn(
+                      "h-9 w-9 rounded-xl flex items-center justify-center shrink-0 border",
+                      c.bg,
+                      c.border
+                    )}
                   >
-                    <Eye className="h-3.5 w-3.5" />
-                    View
-                  </button>
-                  <a
-                    href={note.fileUrl}
-                    download
-                    className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-slate-900 text-xs font-semibold text-white hover:bg-slate-700 transition-colors"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    Download
-                  </a>
+                    <FileText className={cn("h-4 w-4", c.icon)} />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                      {note.title}
+                    </p>
+                    {note.description && (
+                      <p className="text-xs text-slate-500 truncate mt-0.5">{note.description}</p>
+                    )}
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      {note.fileSize && <span className="font-medium">{note.fileSize}</span>}
+                      {note.fileSize && " · "}
+                      {formatDate(note.createdAt)}
+                    </p>
+                  </div>
+
+                  {/* Icon-only buttons on mobile, text on sm+ */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => openNote(note, c)}
+                      className="h-8 w-8 sm:w-auto sm:px-3 flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
+                    >
+                      <Eye className="h-3.5 w-3.5 shrink-0" />
+                      <span className="hidden sm:inline">View</span>
+                    </button>
+                    <a
+                      href={note.fileUrl}
+                      download
+                      className="h-8 w-8 sm:w-auto sm:px-3 flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 text-xs font-semibold text-white hover:bg-slate-700 transition-colors"
+                    >
+                      <Download className="h-3.5 w-3.5 shrink-0" />
+                      <span className="hidden sm:inline">Download</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             );

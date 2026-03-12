@@ -12,6 +12,7 @@ import {
   Clock,
   ArrowUpRight,
 } from "lucide-react";
+import { BatchTabBar } from "@/components/student/batch-tab-bar";
 import { mockBatches, mockNotes, mockVideos, mockTests } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -101,6 +102,9 @@ export default async function StudentBatchPage({
           </div>
         </div>
       </div>
+
+      {/* ── Mobile tab bar ──────────────────────────────────────────── */}
+      <BatchTabBar batchId={batchId} active="overview" />
 
       {/* ── Main grid ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

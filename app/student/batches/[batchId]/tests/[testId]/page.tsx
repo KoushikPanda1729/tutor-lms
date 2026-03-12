@@ -67,7 +67,7 @@ export default function TestAttemptPage({
   /* ── Start screen ──────────────────────────────────────────────── */
   if (!started) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
+      <div className="min-h-[70vh] flex items-center justify-center pb-24 lg:pb-0">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Header */}
@@ -144,69 +144,93 @@ export default function TestAttemptPage({
   const progress = (answeredCount / test.questions.length) * 100;
 
   return (
-    <div className="flex gap-5 -mx-6 -mt-6 px-6 pt-5 pb-6 bg-slate-100/60 min-h-[calc(100vh-4rem)] items-start">
+    <div className="flex flex-col lg:flex-row gap-4 -mx-6 -mt-6 px-4 sm:px-6 pt-4 pb-24 lg:pb-6 bg-slate-100/60 min-h-[calc(100vh-4rem)] items-start">
       {/* ── Main column ─────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col gap-4 min-w-0">
+      <div className="flex-1 flex flex-col gap-3 min-w-0 w-full">
         {/* Top bar */}
-        <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-4 bg-white border border-slate-200 rounded-2xl px-4 py-2.5 shadow-sm">
           <p className="flex-1 text-sm font-semibold text-slate-800 truncate">{test.title}</p>
-
-          {/* Timer */}
           <div
             className={cn(
-              "flex items-center gap-1.5 font-mono text-lg font-black tabular-nums transition-colors",
+              "flex items-center gap-1 font-mono text-base font-black tabular-nums shrink-0 transition-colors",
               isLowTime ? "text-red-600 animate-pulse" : "text-slate-900"
             )}
           >
             <Clock className="h-3.5 w-3.5 text-slate-400" />
             {formatTime(timeLeft)}
           </div>
-
-          <div className="w-px h-5 bg-slate-200" />
-
-          {/* Answered count */}
-          <span className="text-xs text-slate-500 shrink-0">
-            {answeredCount}/{test.questions.length} answered
+          <div className="hidden sm:block w-px h-5 bg-slate-200" />
+          <span className="hidden sm:block text-xs text-slate-500 shrink-0">
+            {answeredCount}/{test.questions.length}
           </span>
-
           <button
             onClick={handleSubmit}
-            className="h-8 px-4 rounded-lg bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-xs font-bold transition-all"
+            className="h-8 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 active:scale-95 text-white text-xs font-bold transition-all shrink-0"
           >
             Submit
           </button>
         </div>
 
+        {/* Mobile question palette */}
+        <div className="lg:hidden bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            {test.questions.map((question, i) => (
+              <button
+                key={question.id}
+                onClick={() => setCurrentQ(i)}
+                className={cn(
+                  "h-8 w-8 rounded-lg text-xs font-bold transition-all shrink-0",
+                  i === currentQ
+                    ? "bg-slate-900 text-white"
+                    : isAnswered(question.id)
+                      ? "bg-slate-300 text-slate-700"
+                      : "bg-slate-100 text-slate-400"
+                )}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <div className="ml-auto flex items-center gap-3 pl-3 border-l border-slate-100 shrink-0">
+              {[
+                { cls: "bg-slate-900", label: "Current" },
+                { cls: "bg-slate-300", label: "Done" },
+                { cls: "bg-slate-100", label: "Todo" },
+              ].map(({ cls, label }) => (
+                <div key={label} className="flex items-center gap-1">
+                  <div className={cn("h-2 w-2 rounded-full", cls)} />
+                  <span className="text-[10px] text-slate-400">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Question card */}
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          {/* Thin progress bar */}
           <div className="h-[3px] bg-slate-100">
             <div
               className="h-full bg-slate-800 transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
-
-          <div className="px-8 py-7">
-            {/* Q meta row */}
-            <div className="flex items-center gap-2 mb-5">
+          <div className="px-4 sm:px-8 py-5 sm:py-7">
+            <div className="flex items-center gap-2 mb-4">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                Question {currentQ + 1} of {test.questions.length}
+                Q {currentQ + 1} / {test.questions.length}
               </span>
               <span className="text-slate-200">·</span>
               <span className="text-[11px] text-slate-400">
-                {q.type === "mcq" ? "Multiple Choice" : "Integer Type"}
+                {q.type === "mcq" ? "MCQ" : "Integer"}
               </span>
-              <div className="ml-auto flex items-center gap-3 text-[11px] text-slate-400">
-                <span>+{q.marks} pts</span>
-                {q.negativeMarks > 0 && <span>−{q.negativeMarks} neg</span>}
+              <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-400">
+                <span>+{q.marks}</span>
+                {q.negativeMarks > 0 && <span>−{q.negativeMarks}</span>}
               </div>
             </div>
+            <p className="text-sm sm:text-[15px] text-slate-900 font-medium leading-relaxed mb-5">
+              {q.text}
+            </p>
 
-            {/* Question text */}
-            <p className="text-[15px] text-slate-900 font-medium leading-relaxed mb-6">{q.text}</p>
-
-            {/* MCQ options */}
             {q.type === "mcq" && q.options && (
               <div className="space-y-2">
                 {q.options.map((opt, oi) => {
@@ -217,7 +241,7 @@ export default function TestAttemptPage({
                       key={oi}
                       onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: opt }))}
                       className={cn(
-                        "w-full flex items-center gap-3 rounded-xl border px-4 py-2.5 text-left transition-all duration-150",
+                        "w-full flex items-center gap-3 rounded-xl border px-3 sm:px-4 py-2.5 text-left transition-all duration-150",
                         selected
                           ? "border-slate-900 bg-slate-900"
                           : "border-slate-200 bg-slate-50 hover:bg-white hover:border-slate-300"
@@ -235,7 +259,7 @@ export default function TestAttemptPage({
                       </span>
                       <span
                         className={cn(
-                          "flex-1 text-sm",
+                          "flex-1 text-sm text-left",
                           selected ? "text-white font-medium" : "text-slate-700"
                         )}
                       >
@@ -255,7 +279,6 @@ export default function TestAttemptPage({
               </div>
             )}
 
-            {/* Integer input */}
             {q.type === "integer" && (
               <div className="mt-2">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">
@@ -266,7 +289,7 @@ export default function TestAttemptPage({
                   value={answers[q.id] || ""}
                   onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
                   placeholder="Enter integer"
-                  className="h-12 w-48 rounded-xl border border-slate-200 bg-slate-50 px-4 text-lg font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-800 focus:bg-white transition-all"
+                  className="h-12 w-full sm:w-48 rounded-xl border border-slate-200 bg-slate-50 px-4 text-lg font-mono font-bold text-slate-900 focus:outline-none focus:border-slate-800 focus:bg-white transition-all"
                 />
               </div>
             )}
@@ -274,16 +297,14 @@ export default function TestAttemptPage({
         </div>
 
         {/* Nav bar */}
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-6 py-3 flex items-center justify-between">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => setCurrentQ((q) => Math.max(0, q - 1))}
             disabled={currentQ === 0}
             className="flex items-center gap-1.5 h-9 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
-            <ChevronLeft className="h-4 w-4" /> Previous
+            <ChevronLeft className="h-4 w-4" /> Prev
           </button>
-
-          {/* Step dots */}
           <div className="flex items-center gap-1.5">
             {test.questions.map((_, i) => (
               <button
@@ -300,7 +321,6 @@ export default function TestAttemptPage({
               />
             ))}
           </div>
-
           <button
             onClick={() => setCurrentQ((q) => Math.min(test.questions.length - 1, q + 1))}
             disabled={currentQ === test.questions.length - 1}
@@ -311,9 +331,8 @@ export default function TestAttemptPage({
         </div>
       </div>
 
-      {/* ── Right sidebar ───────────────────────────────────────────── */}
-      <div className="w-[200px] shrink-0 flex flex-col gap-3">
-        {/* Question palette */}
+      {/* ── Right sidebar (desktop only) ────────────────────────────── */}
+      <div className="hidden lg:flex w-[200px] shrink-0 flex-col gap-3">
         <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
             Questions
@@ -336,7 +355,6 @@ export default function TestAttemptPage({
               </button>
             ))}
           </div>
-
           <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
             {[
               { label: "Current", cls: "bg-slate-900", text: "text-slate-700" },
@@ -350,13 +368,10 @@ export default function TestAttemptPage({
             ))}
           </div>
         </div>
-
-        {/* Stats */}
         <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Progress
           </p>
-
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500">Answered</span>
@@ -369,8 +384,6 @@ export default function TestAttemptPage({
               </span>
             </div>
           </div>
-
-          {/* Circular-ish progress */}
           <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="absolute left-0 top-0 h-full bg-slate-800 rounded-full transition-all duration-500"
@@ -379,8 +392,6 @@ export default function TestAttemptPage({
           </div>
           <p className="text-[11px] font-bold text-slate-400 text-right">{Math.round(progress)}%</p>
         </div>
-
-        {/* Submit */}
         <button
           onClick={handleSubmit}
           className="w-full h-11 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-all active:scale-95"

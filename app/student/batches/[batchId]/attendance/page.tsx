@@ -2,6 +2,7 @@ import { TrendingUp, TrendingDown, CheckCircle2, XCircle, CalendarCheck } from "
 import { mockAttendance } from "@/lib/mock-data";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { BatchTabBar } from "@/components/student/batch-tab-bar";
 
 const STUDENT_ID = "stu-1";
 const DAYS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -55,7 +56,8 @@ export default async function StudentAttendancePage({
   const sortedHistory = [...myRecords].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-24 lg:pb-0">
+      <BatchTabBar batchId={batchId} active="attendance" />
       {/* Header */}
       <div>
         <h3 className="text-base font-bold text-slate-900">Attendance</h3>
@@ -63,13 +65,16 @@ export default async function StudentAttendancePage({
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-semibold text-slate-500">Attendance Rate</p>
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        {/* Attendance Rate */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 leading-tight">
+              Rate
+            </p>
             <div
               className={cn(
-                "h-6 w-6 rounded-lg flex items-center justify-center",
+                "h-5 w-5 rounded-lg flex items-center justify-center shrink-0",
                 isGood ? "bg-emerald-50" : "bg-red-50"
               )}
             >
@@ -80,11 +85,11 @@ export default async function StudentAttendancePage({
               )}
             </div>
           </div>
-          <p className="text-2xl font-black text-slate-900 tabular-nums">
+          <p className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums">
             {percentage}
-            <span className="text-base font-bold">%</span>
+            <span className="text-sm font-bold">%</span>
           </p>
-          <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="mt-1.5 h-1 bg-slate-100 rounded-full overflow-hidden">
             <div
               className={cn("h-full rounded-full", isGood ? "bg-emerald-500" : "bg-red-400")}
               style={{ width: `${percentage}%` }}
@@ -92,39 +97,49 @@ export default async function StudentAttendancePage({
           </div>
           <p
             className={cn(
-              "text-[10px] font-semibold mt-1",
+              "text-[9px] sm:text-[10px] font-semibold mt-1 truncate",
               isGood ? "text-emerald-600" : "text-red-500"
             )}
           >
-            {isGood ? "Good standing" : "Below 75% threshold"}
+            {isGood ? "Good" : "Low"}
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <p className="text-[11px] font-semibold text-slate-500 mb-2">Classes Attended</p>
-          <p className="text-2xl font-black text-slate-900 tabular-nums">{presentCount}</p>
-          <p className="text-[10px] text-slate-400 mt-0.5">out of {myRecords.length} total</p>
-          <div className="mt-2 flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-            <span className="text-[10px] font-medium text-emerald-600">Present</span>
+        {/* Classes Attended */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 mb-1.5 leading-tight">
+            Attended
+          </p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums">
+            {presentCount}
+          </p>
+          <p className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">of {myRecords.length}</p>
+          <div className="mt-1.5 flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" />
+            <span className="text-[9px] sm:text-[10px] font-medium text-emerald-600">Present</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-          <p className="text-[11px] font-semibold text-slate-500 mb-2">Classes Missed</p>
-          <p className="text-2xl font-black text-slate-900 tabular-nums">{absentCount}</p>
-          <p className="text-[10px] text-slate-400 mt-0.5">out of {myRecords.length} total</p>
-          <div className="mt-2 flex items-center gap-1">
-            <XCircle className="h-3 w-3 text-slate-400" />
-            <span className="text-[10px] font-medium text-slate-500">Absent</span>
+        {/* Classes Missed */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 sm:p-4">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 mb-1.5 leading-tight">
+            Missed
+          </p>
+          <p className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums">
+            {absentCount}
+          </p>
+          <p className="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">of {myRecords.length}</p>
+          <div className="mt-1.5 flex items-center gap-1">
+            <XCircle className="h-3 w-3 text-slate-400 shrink-0" />
+            <span className="text-[9px] sm:text-[10px] font-medium text-slate-500">Absent</span>
           </div>
         </div>
       </div>
 
       {/* Bottom row: calendar + history */}
-      <div className="flex gap-4 items-start">
-        {/* Calendar card — fixed width */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 w-[300px] shrink-0">
+      <div className="flex flex-col lg:flex-row gap-4 items-start">
+        {/* Calendar card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 w-full lg:w-[300px] lg:shrink-0">
           <p className="text-sm font-bold text-slate-900 mb-1">Calendar</p>
           {/* Legend */}
           <div className="flex items-center gap-3 mb-4">
@@ -199,8 +214,8 @@ export default async function StudentAttendancePage({
         </div>
 
         {/* History list — fills remaining space */}
-        <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center px-5 py-3 bg-slate-50 border-b border-slate-100">
+        <div className="w-full lg:flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex items-center px-3 sm:px-5 py-2.5 bg-slate-50 border-b border-slate-100">
             <p className="flex-1 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
               Date
             </p>
@@ -213,29 +228,31 @@ export default async function StudentAttendancePage({
               <div
                 key={record.date}
                 className={cn(
-                  "flex items-center px-5 py-3",
+                  "flex items-center px-3 sm:px-5 py-2.5",
                   i !== 0 && "border-t border-slate-100"
                 )}
               >
-                <div className="flex-1 flex items-center gap-3">
+                <div className="flex-1 flex items-center gap-2.5">
                   <div
                     className={cn(
-                      "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
+                      "h-7 w-7 rounded-lg flex items-center justify-center shrink-0",
                       record.present ? "bg-emerald-50" : "bg-slate-100"
                     )}
                   >
                     <CalendarCheck
                       className={cn(
-                        "h-4 w-4",
+                        "h-3.5 w-3.5",
                         record.present ? "text-emerald-500" : "text-slate-400"
                       )}
                     />
                   </div>
-                  <p className="text-sm font-medium text-slate-700">{formatDate(record.date)}</p>
+                  <p className="text-xs sm:text-sm font-medium text-slate-700">
+                    {formatDate(record.date)}
+                  </p>
                 </div>
                 <span
                   className={cn(
-                    "inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full",
+                    "inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0",
                     record.present
                       ? "bg-emerald-50 text-emerald-700"
                       : "bg-slate-100 text-slate-500"
@@ -243,7 +260,7 @@ export default async function StudentAttendancePage({
                 >
                   <span
                     className={cn(
-                      "h-1.5 w-1.5 rounded-full",
+                      "h-1.5 w-1.5 rounded-full shrink-0",
                       record.present ? "bg-emerald-500" : "bg-slate-400"
                     )}
                   />
