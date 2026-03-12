@@ -68,6 +68,47 @@ const NOTIFICATIONS = [
   },
 ];
 
+function getPageTitle(pathname: string): string {
+  const parts = pathname.split("/").filter(Boolean);
+  // /org/[slug]/... or /student/...
+  const isOrg = parts[0] === "org";
+  const isStudent = parts[0] === "student";
+
+  if (isOrg) {
+    const section = parts[2];
+    const sub = parts[4];
+    if (section === "dashboard") return "Dashboard";
+    if (section === "students") return "Students";
+    if (section === "teachers") return "Teachers";
+    if (section === "reports") return "Reports";
+    if (section === "settings") return "Settings";
+    if (section === "batches") {
+      if (!parts[3]) return "Batches";
+      if (parts[3] === "new") return "New Batch";
+      if (sub === "notes") return "Notes";
+      if (sub === "videos") return "Videos";
+      if (sub === "tests") return "Tests";
+      if (sub === "attendance") return "Attendance";
+      if (sub === "students") return "Batch Students";
+      return "Batch Overview";
+    }
+  }
+  if (isStudent) {
+    const section = parts[1];
+    if (section === "dashboard") return "My Dashboard";
+    if (section === "batches") {
+      const sub = parts[3];
+      if (!parts[2]) return "My Batches";
+      if (sub === "notes") return "Notes";
+      if (sub === "videos") return "Videos";
+      if (sub === "tests") return "Tests";
+      if (sub === "attendance") return "Attendance";
+      return "Batch Overview";
+    }
+  }
+  return "Dashboard";
+}
+
 function ShellInner({
   sidebar,
   children,
@@ -207,7 +248,12 @@ function ShellInner({
             <Menu className="h-5 w-5" />
           </button>
 
-          <div className="flex-1" />
+          {/* Page title — mobile only */}
+          <p className="lg:hidden flex-1 text-sm font-bold text-slate-900 truncate">
+            {getPageTitle(pathname)}
+          </p>
+
+          <div className="hidden lg:flex flex-1" />
 
           <div className="flex items-center gap-2">
             <button
