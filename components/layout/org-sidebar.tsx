@@ -76,7 +76,7 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-slate-200 flex flex-col z-30 transition-all duration-300",
+        "h-full bg-white border-r border-slate-200 flex flex-col transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >

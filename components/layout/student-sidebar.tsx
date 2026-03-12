@@ -41,7 +41,7 @@ export function StudentSidebar({ orgName = "My Institute" }: StudentSidebarProps
   const router = useRouter();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 flex flex-col z-30">
+    <aside className="h-full w-64 bg-white border-r border-slate-200 flex flex-col">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-slate-100">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600">
