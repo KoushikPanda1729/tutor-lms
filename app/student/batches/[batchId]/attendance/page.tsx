@@ -56,7 +56,7 @@ export default async function StudentAttendancePage({
   const sortedHistory = [...myRecords].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <div className="space-y-4 pb-24 lg:pb-0">
+    <div className="space-y-4 pb-4">
       <BatchTabBar batchId={batchId} active="attendance" />
       {/* Header */}
       <div>

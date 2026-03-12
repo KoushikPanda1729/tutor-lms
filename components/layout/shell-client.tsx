@@ -2,7 +2,16 @@
 
 import { Suspense, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Menu, Bell, X, BookOpen, ClipboardList, CalendarCheck, Info } from "lucide-react";
+import {
+  Menu,
+  Bell,
+  X,
+  BookOpen,
+  ClipboardList,
+  CalendarCheck,
+  Info,
+  GraduationCap,
+} from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -12,7 +21,9 @@ interface ShellClientProps {
   children: React.ReactNode;
   userName?: string;
   userEmail?: string;
+  orgName?: string;
   desktopSidebarWidth?: "w-72" | "w-16";
+  mobileBottomNav?: React.ReactNode;
 }
 
 const NOTIFICATIONS = [
@@ -114,7 +125,9 @@ function ShellInner({
   children,
   userName = "User",
   userEmail = "",
+  orgName,
   desktopSidebarWidth = "w-72",
+  mobileBottomNav,
 }: ShellClientProps) {
   const pathname = usePathname();
   useSearchParams();
@@ -241,19 +254,29 @@ function ShellInner({
       >
         {/* Top bar */}
         <header className="flex h-14 lg:h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 lg:px-6 shrink-0">
-          <button
-            onClick={() => setOpen(true)}
-            className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          {/* Hamburger — only when no bottom nav */}
+          {!mobileBottomNav && (
+            <button
+              onClick={() => setOpen(true)}
+              className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
 
-          {/* Page title — mobile only */}
-          <p className="lg:hidden flex-1 text-sm font-bold text-slate-900 truncate">
-            {getPageTitle(pathname)}
-          </p>
-
-          <div className="hidden lg:flex flex-1" />
+          {/* Logo (mobile bottom nav) or page title (hamburger nav) */}
+          {mobileBottomNav && orgName ? (
+            <div className="flex items-center gap-2 flex-1">
+              <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
+                <GraduationCap className="h-3.5 w-3.5 text-white" />
+              </div>
+              <span className="text-sm font-bold text-slate-900 truncate">{orgName}</span>
+            </div>
+          ) : (
+            <p className="lg:hidden flex-1 text-sm font-bold text-slate-900 truncate">
+              {getPageTitle(pathname)}
+            </p>
+          )}
 
           <div className="flex items-center gap-2">
             <button
@@ -280,8 +303,14 @@ function ShellInner({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
+        <main
+          className={cn("flex-1 overflow-y-auto p-4 lg:p-6", mobileBottomNav && "pb-20 lg:pb-6")}
+        >
+          {children}
+        </main>
       </div>
+
+      {mobileBottomNav}
     </div>
   );
 }

@@ -67,7 +67,7 @@ export default function TestAttemptPage({
   /* ── Start screen ──────────────────────────────────────────────── */
   if (!started) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center pb-24 lg:pb-0">
+      <div className="min-h-[70vh] flex items-center justify-center pb-4">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Header */}
@@ -144,7 +144,7 @@ export default function TestAttemptPage({
   const progress = (answeredCount / test.questions.length) * 100;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 -mx-6 -mt-6 px-4 sm:px-6 pt-4 pb-24 lg:pb-6 bg-slate-100/60 min-h-[calc(100vh-4rem)] items-start">
+    <div className="flex flex-col lg:flex-row gap-4 -mx-6 -mt-6 px-4 sm:px-6 pt-4 bg-slate-100/60 min-h-[calc(100vh-4rem)] items-start">
       {/* ── Main column ─────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col gap-3 min-w-0 w-full">
         {/* Top bar */}
