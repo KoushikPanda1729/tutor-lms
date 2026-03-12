@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const navItems = [
   { label: "Dashboard", href: "/super-admin/dashboard", icon: LayoutDashboard },
@@ -36,22 +37,23 @@ export function SuperAdminSidebar() {
   const isOnSettings = pathname.startsWith("/super-admin/settings");
   const activeTab = searchParams.get("tab") ?? "general";
   const [settingsOpen, setSettingsOpen] = useState(isOnSettings);
+  const router = useRouter();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 flex flex-col z-30">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 flex flex-col z-30">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-6 py-5 border-b border-slate-800">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-          <GraduationCap className="h-5 w-5 text-white" />
+      <div className="flex items-center gap-3 px-5 h-16 border-b border-slate-100">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600">
+          <GraduationCap className="h-4 w-4 text-white" />
         </div>
         <div>
-          <p className="text-sm font-bold text-white">TutorLMS</p>
-          <p className="text-xs text-slate-400">Super Admin</p>
+          <p className="text-sm font-bold text-slate-900 leading-tight">TutorLMS</p>
+          <p className="text-[11px] text-slate-400">Super Admin</p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname.startsWith(item.href);
@@ -63,35 +65,41 @@ export function SuperAdminSidebar() {
                 onClick={() => {
                   if (isSettingsItem) {
                     setSettingsOpen((o) => !o);
-                    if (!isOnSettings) window.location.href = item.href;
+                    if (!isOnSettings) router.push(item.href);
                   } else {
-                    window.location.href = item.href;
+                    router.push(item.href);
                   }
                 }}
                 className={cn(
-                  "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                   isActive
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <span
+                  className={cn(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
+                    isActive ? "bg-indigo-600" : "bg-slate-100"
+                  )}
+                >
+                  <Icon className={cn("h-3.5 w-3.5", isActive ? "text-white" : "text-slate-500")} />
+                </span>
                 <span className="flex-1 text-left">{item.label}</span>
                 {isSettingsItem && (
                   <ChevronDown
                     className={cn(
                       "h-3.5 w-3.5 transition-transform duration-200",
-                      isActive ? "text-white/70" : "text-slate-500",
+                      isActive ? "text-indigo-400" : "text-slate-400",
                       settingsOpen ? "rotate-0" : "-rotate-90"
                     )}
                   />
                 )}
               </button>
 
-              {/* Settings sub-nav */}
               {isSettingsItem && settingsOpen && (
-                <div className="mt-0.5 mb-1 space-y-0.5 pl-3">
-                  <p className="px-3 pt-1 pb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+                <div className="mt-1 ml-3 pl-4 border-l-2 border-slate-100 space-y-0.5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 pt-2 pb-1">
                     Preferences
                   </p>
                   {settingsTabs.map((tab) => {
@@ -102,13 +110,18 @@ export function SuperAdminSidebar() {
                         key={tab.tab}
                         href={`/super-admin/settings?tab=${tab.tab}`}
                         className={cn(
-                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                          "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-all",
                           isTabActive
-                            ? "bg-indigo-500/20 text-indigo-300"
-                            : "text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+                            ? "bg-indigo-50 text-indigo-700"
+                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                         )}
                       >
-                        <TabIcon className="h-3.5 w-3.5 shrink-0" />
+                        <TabIcon
+                          className={cn(
+                            "h-3.5 w-3.5",
+                            isTabActive ? "text-indigo-500" : "text-slate-400"
+                          )}
+                        />
                         {tab.label}
                       </Link>
                     );
@@ -121,9 +134,11 @@ export function SuperAdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-2 py-4 border-t border-slate-800">
-        <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
-          <LogOut className="h-4 w-4" />
+      <div className="px-3 py-4 border-t border-slate-100">
+        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
+            <LogOut className="h-3.5 w-3.5 text-slate-400" />
+          </span>
           Sign out
         </button>
       </div>

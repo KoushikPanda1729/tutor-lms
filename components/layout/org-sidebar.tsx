@@ -19,9 +19,11 @@ import {
   Building2,
   CreditCard,
   AlertTriangle,
+  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { mockBatches } from "@/lib/mock-data";
 
 const navSlugs = [
@@ -64,90 +66,98 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
   const currentBatchId = isInsideBatch ? pathParts[4] : null;
   const currentBatch = currentBatchId ? mockBatches.find((b) => b.id === currentBatchId) : null;
   const batchBase = currentBatchId ? `/org/${orgSlug}/batches/${currentBatchId}` : null;
-
   const isOnSettings = pathParts[3] === "settings";
   const activeSettingsTab = searchParams.get("tab") ?? "general";
 
-  // Start expanded if already on that section
   const [batchOpen, setBatchOpen] = useState(isOnBatches);
   const [settingsOpen, setSettingsOpen] = useState(isOnSettings);
+  const router = useRouter();
 
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-slate-900 flex flex-col z-30 transition-all duration-300",
+        "fixed left-0 top-0 h-screen bg-white border-r border-slate-200 flex flex-col z-30 transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 py-5 border-b border-slate-800">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600">
-          <GraduationCap className="h-5 w-5 text-white" />
+      <div
+        className={cn(
+          "flex items-center h-16 border-b border-slate-100",
+          collapsed ? "justify-center px-0" : "gap-3 px-5"
+        )}
+      >
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600">
+          <GraduationCap className="h-4 w-4 text-white" />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <p className="text-sm font-bold text-white truncate">{orgName}</p>
-            <p className="text-xs text-slate-400">{orgSlug}</p>
+            <p className="text-sm font-bold text-slate-900 leading-tight truncate">{orgName}</p>
+            <p className="text-[11px] text-slate-400">{orgSlug}</p>
           </div>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
+      <nav className={cn("flex-1 py-4 space-y-1 overflow-y-auto", collapsed ? "px-2" : "px-3")}>
         {navSlugs.map((item) => {
           const Icon = item.icon;
           const href = `/org/${orgSlug}/${item.slug}`;
           const isActive = pathParts[3] === item.slug;
           const isBatchesItem = item.slug === "batches";
           const isSettingsItem = item.slug === "settings";
-
           const hasSubNav = isBatchesItem || isSettingsItem;
           const isExpanded = isBatchesItem ? batchOpen : isSettingsItem ? settingsOpen : false;
 
           return (
             <div key={item.slug}>
-              {/* Nav button — toggles sub-nav for Batches & Settings, navigates for others */}
               <button
                 title={collapsed ? item.label : undefined}
                 onClick={() => {
                   if (isBatchesItem) {
                     setBatchOpen((o) => !o);
-                    // Navigate to batches list if not already on batches
-                    if (!isOnBatches) window.location.href = href;
+                    if (!isOnBatches) router.push(href);
                   } else if (isSettingsItem) {
                     setSettingsOpen((o) => !o);
-                    if (!isOnSettings) window.location.href = href;
+                    if (!isOnSettings) router.push(href);
                   } else {
-                    window.location.href = href;
+                    router.push(href);
                   }
                 }}
                 className={cn(
-                  "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                   collapsed && "justify-center px-0",
                   isActive
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                    ? "bg-indigo-50 text-indigo-700"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <span
+                  className={cn(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
+                    isActive ? "bg-indigo-600" : "bg-slate-100"
+                  )}
+                >
+                  <Icon className={cn("h-3.5 w-3.5", isActive ? "text-white" : "text-slate-500")} />
+                </span>
                 {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
                 {!collapsed && hasSubNav && (
                   <ChevronDown
                     className={cn(
                       "h-3.5 w-3.5 transition-transform duration-200",
-                      isActive ? "text-white/70" : "text-slate-500",
+                      isActive ? "text-indigo-400" : "text-slate-400",
                       isExpanded ? "rotate-0" : "-rotate-90"
                     )}
                   />
                 )}
               </button>
 
-              {/* ── Batches sub-nav ──────────────────────────────────── */}
+              {/* Batches sub-nav */}
               {isBatchesItem && batchOpen && !collapsed && (
-                <div className="mt-0.5 mb-1 space-y-0.5 pl-3">
+                <div className="mt-1 ml-3 pl-4 border-l-2 border-slate-100 space-y-0.5">
                   {isInsideBatch && currentBatch && batchBase ? (
                     <>
-                      <p className="px-3 pt-1 pb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-widest truncate">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 pt-2 pb-1 truncate">
                         {currentBatch.name}
                       </p>
                       {batchTabs.map((tab) => {
@@ -162,30 +172,35 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
                             key={tab.label}
                             href={tabHref}
                             className={cn(
-                              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-all",
                               isTabActive
-                                ? "bg-indigo-500/20 text-indigo-300"
-                                : "text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+                                ? "bg-indigo-50 text-indigo-700"
+                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                             )}
                           >
-                            <TabIcon className="h-3.5 w-3.5 shrink-0" />
+                            <TabIcon
+                              className={cn(
+                                "h-3.5 w-3.5",
+                                isTabActive ? "text-indigo-500" : "text-slate-400"
+                              )}
+                            />
                             {tab.label}
                           </Link>
                         );
                       })}
                     </>
                   ) : (
-                    <p className="px-3 py-2 text-[11px] text-slate-600">
+                    <p className="px-2 py-2 text-[11px] text-slate-400">
                       Open a batch to see its tabs
                     </p>
                   )}
                 </div>
               )}
 
-              {/* ── Settings sub-nav ─────────────────────────────────── */}
+              {/* Settings sub-nav */}
               {isSettingsItem && settingsOpen && !collapsed && (
-                <div className="mt-0.5 mb-1 space-y-0.5 pl-3">
-                  <p className="px-3 pt-1 pb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+                <div className="mt-1 ml-3 pl-4 border-l-2 border-slate-100 space-y-0.5">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 pt-2 pb-1">
                     Preferences
                   </p>
                   {settingsTabs.map((tab) => {
@@ -196,13 +211,18 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
                         key={tab.tab}
                         href={`/org/${orgSlug}/settings?tab=${tab.tab}`}
                         className={cn(
-                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                          "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-all",
                           isTabActive
-                            ? "bg-indigo-500/20 text-indigo-300"
-                            : "text-slate-500 hover:bg-slate-800 hover:text-slate-300"
+                            ? "bg-indigo-50 text-indigo-700"
+                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                         )}
                       >
-                        <TabIcon className="h-3.5 w-3.5 shrink-0" />
+                        <TabIcon
+                          className={cn(
+                            "h-3.5 w-3.5",
+                            isTabActive ? "text-indigo-500" : "text-slate-400"
+                          )}
+                        />
                         {tab.label}
                       </Link>
                     );
@@ -215,26 +235,31 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
       </nav>
 
       {/* Collapse toggle */}
-      <div className="px-2 pb-2">
+      <div className="flex justify-end px-4 pb-2">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex w-full items-center justify-center rounded-lg p-2 text-slate-500 hover:bg-slate-800 hover:text-white transition-colors"
+          className="h-6 w-6 flex items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"
         >
-          <ChevronDown
-            className={cn("h-4 w-4 transition-transform", collapsed ? "-rotate-90" : "rotate-90")}
+          <ChevronLeft
+            className={cn(
+              "h-3.5 w-3.5 transition-transform duration-200",
+              collapsed ? "rotate-180" : ""
+            )}
           />
         </button>
       </div>
 
       {/* Footer */}
-      <div className="px-2 py-3 border-t border-slate-800">
+      <div className="px-3 py-3 border-t border-slate-100">
         <button
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-colors",
+            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all",
             collapsed && "justify-center px-0"
           )}
         >
-          <LogOut className="h-4 w-4 shrink-0" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
+            <LogOut className="h-3.5 w-3.5 text-slate-400" />
+          </span>
           {!collapsed && "Sign out"}
         </button>
       </div>
