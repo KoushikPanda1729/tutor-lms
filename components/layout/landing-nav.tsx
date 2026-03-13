@@ -26,10 +26,10 @@ export function LandingNav() {
   return (
     <nav
       className={cn(
-        "fixed top-0 inset-x-0 z-50 transition-all duration-300",
+        "fixed top-0 inset-x-0 z-50 transition-[background-color,border-color,box-shadow] duration-300",
         scrolled
-          ? "bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm"
-          : "bg-white/90 backdrop-blur-sm border-b border-slate-100"
+          ? "bg-white border-b border-slate-200 shadow-sm"
+          : "bg-white border-b border-slate-100"
       )}
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 h-14 md:h-16 flex items-center justify-between gap-3">

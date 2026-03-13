@@ -29,7 +29,7 @@ export function HeroSlider() {
   }, []);
 
   return (
-    <section className="relative h-[90vh] min-h-[600px] flex items-center overflow-hidden">
+    <section className="relative h-[calc(90vh-4rem)] sm:h-[90vh] min-h-[600px] flex items-center overflow-hidden">
       {/* Background images */}
       {images.map((src, i) => (
         <div

@@ -64,7 +64,7 @@ export function DevNav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999]">
+    <div className="fixed bottom-24 md:bottom-4 right-4 z-[9999]">
       {open && (
         <div className="mb-2 w-72 max-h-[70vh] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-2xl">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
