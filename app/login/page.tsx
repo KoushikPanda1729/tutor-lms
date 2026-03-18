@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { LandingNav } from "@/components/layout/landing-nav";
 import { LandingBottomNav } from "@/components/layout/landing-bottom-nav";
@@ -33,9 +33,11 @@ interface LoginResponseData {
   refresh_token: string;
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const [showPass, setShowPass] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const dispatch = useDispatch();
 
   const {
@@ -63,7 +65,7 @@ export default function LoginPage() {
       })
     );
 
-    router.push(getRedirectPath(platformRole, data.organisations));
+    router.push(redirectTo ?? getRedirectPath(platformRole, data.organisations));
   };
 
   const onSubmit = async (formData: FormData) => {
@@ -240,5 +242,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

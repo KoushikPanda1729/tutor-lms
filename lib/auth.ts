@@ -28,11 +28,14 @@ export function decodeToken(token: string): JWTPayload | null {
 export function saveTokens(accessToken: string, refreshToken: string): void {
   localStorage.setItem("access_token", accessToken);
   localStorage.setItem("refresh_token", refreshToken);
+  // Cookie so middleware can check auth without localStorage
+  document.cookie = `access_token=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 }
 
 export function clearTokens(): void {
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
+  document.cookie = "access_token=; path=/; max-age=0; SameSite=Lax";
 }
 
 export function getRedirectPath(platformRole: string, organisations: AuthOrg[]): string {
