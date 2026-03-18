@@ -1,14 +1,18 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { MemberRole } from "@/types";
+
+interface AuthOrg {
+  id: string;
+  name: string;
+  role: string;
+}
 
 interface AuthUser {
   id: string;
   name: string;
   email: string;
-  role: MemberRole | "super-admin";
-  orgId?: string;
-  orgSlug?: string;
-  avatar?: string;
+  platform_role: string;
+  organisations: AuthOrg[];
+  profile_picture?: string;
 }
 
 interface AuthState {

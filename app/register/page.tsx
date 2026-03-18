@@ -2,24 +2,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { GraduationCap, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { LandingNav } from "@/components/layout/landing-nav";
 import { LandingBottomNav } from "@/components/layout/landing-bottom-nav";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { api } from "@/lib/api";
+import { decodeToken, saveTokens, getRedirectPath, type AuthOrg } from "@/lib/auth";
+import { setUser } from "@/store/slices/authSlice";
 
 const schema = z.object({
   name: z.string().min(2, "Name is required"),
+  phone: z.string().min(10, "Enter a valid phone number"),
   email: z.string().email("Enter a valid email"),
   password: z.string().min(8, "Minimum 8 characters"),
 });
 type FormData = z.infer<typeof schema>;
 
+interface RegisterResponseData {
+  user: {
+    id: string;
+    name: string;
+    emails: Array<{ address: string; is_verified: boolean }>;
+    profile_picture: string;
+  };
+  organisations: AuthOrg[];
+  access_token: string;
+  refresh_token: string;
+}
+
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
+
   const {
     register,
     handleSubmit,
@@ -28,10 +48,49 @@ export default function RegisterPage() {
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: FormData) => {
-    void data;
-    await new Promise((r) => setTimeout(r, 800));
-    router.push("/onboarding");
+  const handleAuthSuccess = (data: RegisterResponseData) => {
+    saveTokens(data.access_token, data.refresh_token);
+
+    const decoded = decodeToken(data.access_token);
+    const platformRole = decoded?.platform_role ?? "";
+
+    dispatch(
+      setUser({
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.emails[0]?.address ?? "",
+        platform_role: platformRole,
+        organisations: data.organisations,
+        profile_picture: data.user.profile_picture,
+      })
+    );
+
+    router.push(getRedirectPath(platformRole, data.organisations));
+  };
+
+  const onSubmit = async (formData: FormData) => {
+    try {
+      const res = await api.post<RegisterResponseData>("/auth/register", {
+        name: formData.name,
+        emails: [{ address: formData.email, is_verified: false }],
+        phones: [{ number: formData.phone, is_verified: false }],
+        password: formData.password,
+      });
+      toast.success(res.message);
+      handleAuthSuccess(res.data);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Registration failed");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const res = await api.get<{ url: string; state: string }>("/auth/google");
+      sessionStorage.setItem("google_oauth_state", res.data.state);
+      window.location.href = res.data.url;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-up failed");
+    }
   };
 
   return (
@@ -91,7 +150,11 @@ export default function RegisterPage() {
             </div>
 
             {/* Google */}
-            <button className="w-full flex items-center justify-center gap-3 h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors mb-5">
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-3 h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors mb-5"
+            >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
@@ -133,6 +196,22 @@ export default function RegisterPage() {
                   <p className="mt-1.5 text-xs text-red-500">{errors.name.message}</p>
                 )}
               </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  Phone Number
+                </label>
+                <input
+                  {...register("phone")}
+                  type="tel"
+                  placeholder="+919876543210"
+                  className="flex h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-4 text-sm placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 transition-colors"
+                />
+                {errors.phone && (
+                  <p className="mt-1.5 text-xs text-red-500">{errors.phone.message}</p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
                 <input
@@ -145,6 +224,7 @@ export default function RegisterPage() {
                   <p className="mt-1.5 text-xs text-red-500">{errors.email.message}</p>
                 )}
               </div>
+
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                   Password

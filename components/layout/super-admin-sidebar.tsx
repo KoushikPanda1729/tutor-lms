@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { LogoutDialog } from "@/components/logout-dialog";
 import {
   LayoutDashboard,
   Building2,
@@ -20,7 +22,6 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const navItems = [
@@ -49,6 +50,7 @@ const orgDetailTabs = [
 export function SuperAdminSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const isOnSettings = pathname.startsWith("/super-admin/settings");
   const activeTab = searchParams.get("tab") ?? "general";
   const [settingsOpen, setSettingsOpen] = useState(isOnSettings);
@@ -198,12 +200,16 @@ export function SuperAdminSidebar() {
 
       {/* Footer */}
       <div className="px-3 py-4 border-t border-slate-100">
-        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all">
+        <button
+          onClick={() => setLogoutOpen(true)}
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all"
+        >
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
             <LogOut className="h-3.5 w-3.5 text-slate-400" />
           </span>
           Sign out
         </button>
+        <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
       </div>
     </aside>
   );

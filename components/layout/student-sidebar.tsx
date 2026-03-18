@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoutDialog } from "@/components/logout-dialog";
 import {
   LayoutDashboard,
   BookOpen,
@@ -34,6 +35,7 @@ interface StudentSidebarProps {
 
 export function StudentSidebar({ orgName = "My Institute" }: StudentSidebarProps) {
   const pathname = usePathname();
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const isOnBatches = pathname.startsWith("/student/batches");
   const currentBatchId = pathname.split("/")[3] ?? null;
   const currentBatch = currentBatchId ? myBatches.find((b) => b.id === currentBatchId) : null;
@@ -133,12 +135,16 @@ export function StudentSidebar({ orgName = "My Institute" }: StudentSidebarProps
 
       {/* Footer */}
       <div className="px-3 py-4 border-t border-slate-100">
-        <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all">
+        <button
+          onClick={() => setLogoutOpen(true)}
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all"
+        >
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
             <LogOut className="h-3.5 w-3.5 text-slate-400" />
           </span>
           Sign out
         </button>
+        <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
       </div>
     </aside>
   );

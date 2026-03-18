@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { getInitials } from "@/lib/utils";
+import { useState } from "react";
+import { LogoutDialog } from "@/components/logout-dialog";
 
 interface HeaderProps {
   title?: string;
@@ -31,6 +33,8 @@ export function Header({
   onMenuClick,
   showSearch = true,
 }: HeaderProps) {
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
   return (
     <header className="flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white px-6">
       <div className="flex items-center gap-4">
@@ -77,10 +81,13 @@ export function Header({
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">Sign out</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600" onClick={() => setLogoutOpen(true)}>
+              Sign out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
     </header>
   );
 }

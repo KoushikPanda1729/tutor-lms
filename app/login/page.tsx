@@ -2,12 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { GraduationCap, Eye, EyeOff } from "lucide-react";
 import { LandingNav } from "@/components/layout/landing-nav";
 import { LandingBottomNav } from "@/components/layout/landing-bottom-nav";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import { api } from "@/lib/api";
+import { decodeToken, saveTokens, getRedirectPath, type AuthOrg } from "@/lib/auth";
+import { setUser } from "@/store/slices/authSlice";
 
 const schema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -15,8 +21,23 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
+interface LoginResponseData {
+  user: {
+    id: string;
+    name: string;
+    emails: Array<{ address: string; is_verified: boolean }>;
+    profile_picture: string;
+  };
+  organisations: AuthOrg[];
+  access_token: string;
+  refresh_token: string;
+}
+
 export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
+  const router = useRouter();
+  const dispatch = useDispatch();
+
   const {
     register,
     handleSubmit,
@@ -25,9 +46,47 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: FormData) => {
-    await new Promise((r) => setTimeout(r, 1000));
-    console.log(data);
+  const handleAuthSuccess = (data: LoginResponseData) => {
+    saveTokens(data.access_token, data.refresh_token);
+
+    const decoded = decodeToken(data.access_token);
+    const platformRole = decoded?.platform_role ?? "";
+
+    dispatch(
+      setUser({
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.emails[0]?.address ?? "",
+        platform_role: platformRole,
+        organisations: data.organisations,
+        profile_picture: data.user.profile_picture,
+      })
+    );
+
+    router.push(getRedirectPath(platformRole, data.organisations));
+  };
+
+  const onSubmit = async (formData: FormData) => {
+    try {
+      const res = await api.post<LoginResponseData>("/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+      toast.success(res.message);
+      handleAuthSuccess(res.data);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Login failed");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const res = await api.get<{ url: string; state: string }>("/auth/google");
+      sessionStorage.setItem("google_oauth_state", res.data.state);
+      window.location.href = res.data.url;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google login failed");
+    }
   };
 
   return (
@@ -86,7 +145,11 @@ export default function LoginPage() {
             </div>
 
             {/* Google */}
-            <button className="w-full flex items-center justify-center gap-3 h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors mb-6">
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-3 h-11 rounded-xl border-2 border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors mb-6"
+            >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
