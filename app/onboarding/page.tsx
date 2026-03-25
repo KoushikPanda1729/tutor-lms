@@ -171,9 +171,9 @@ export default function OnboardingPage() {
   ══════════════════════════════════════════ */
   if (step === 0) {
     return (
-      <div className="h-screen relative overflow-hidden">
-        {/* ── Full-screen interactive map ── */}
-        <div className="absolute inset-0 z-0">
+      <div className="min-h-screen md:h-screen relative md:overflow-hidden bg-white">
+        {/* ── Desktop: full-screen map background ── */}
+        <div className="hidden md:block absolute inset-0 z-0">
           <Controller
             control={control}
             name="latitude"
@@ -190,13 +190,13 @@ export default function OnboardingPage() {
           />
         </div>
 
-        {/* ── Soft edge fade from panel to map ── */}
-        <div className="absolute top-0 bottom-0 left-[580px] w-20 bg-gradient-to-r from-white/60 to-transparent z-10 pointer-events-none" />
+        {/* ── Desktop: fade edge ── */}
+        <div className="hidden md:block absolute top-0 bottom-0 left-[580px] w-20 bg-gradient-to-r from-white/60 to-transparent z-10 pointer-events-none" />
 
         {/* ── Form panel ── */}
         <form
           onSubmit={form.handleSubmit(onNext as () => void)}
-          className="absolute inset-y-0 left-0 w-[580px] z-20 bg-white flex flex-col shadow-[4px_0_40px_-4px_rgba(0,0,0,0.15)]"
+          className="w-full md:absolute md:inset-y-0 md:left-0 md:w-[580px] z-20 bg-white flex flex-col md:shadow-[4px_0_40px_-4px_rgba(0,0,0,0.15)]"
         >
           {/* Top gradient accent bar */}
           <div className="h-1 shrink-0 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
@@ -400,6 +400,64 @@ export default function OnboardingPage() {
               )}
             </div>
 
+            {/* Mobile: inline map + use my location */}
+            <div className="md:hidden space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                  Pin on Map
+                </p>
+                <button
+                  type="button"
+                  onClick={handleLocateMe}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  <LocateFixed className="h-3.5 w-3.5" /> Use my location
+                </button>
+              </div>
+              <div
+                className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm"
+                style={{ height: 200 }}
+              >
+                <Controller
+                  control={control}
+                  name="latitude"
+                  render={() => (
+                    <LocationMapPicker
+                      lat={w.latitude ?? DEFAULT_LAT}
+                      lng={w.longitude ?? DEFAULT_LNG}
+                      onPick={(lat, lng) => {
+                        setValue("latitude", parseFloat(lat.toFixed(6)));
+                        setValue("longitude", parseFloat(lng.toFixed(6)));
+                      }}
+                    />
+                  )}
+                />
+              </div>
+              {/* Mobile coordinates */}
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Lat", value: w.latitude ?? DEFAULT_LAT, field: "latitude" as const },
+                  { label: "Lng", value: w.longitude ?? DEFAULT_LNG, field: "longitude" as const },
+                ].map(({ label, value, field }) => (
+                  <div
+                    key={field}
+                    className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2"
+                  >
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-0.5">
+                      {label}
+                    </p>
+                    <input
+                      type="number"
+                      step="any"
+                      value={value}
+                      onChange={(e) => setValue(field, parseFloat(e.target.value))}
+                      className="w-full bg-transparent text-xs font-mono font-bold text-slate-700 focus:outline-none"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Attendance radius */}
             <div className="flex items-center justify-between bg-gradient-to-r from-indigo-50/60 to-violet-50/40 border border-indigo-100/50 rounded-xl px-4 py-3">
               <div>
@@ -453,18 +511,18 @@ export default function OnboardingPage() {
           </div>
         </form>
 
-        {/* ── Floating: Use my location ── */}
+        {/* ── Floating: Use my location (desktop only) ── */}
         <button
           type="button"
           onClick={handleLocateMe}
-          className="absolute bottom-6 right-6 z-10 flex items-center gap-2 h-10 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold shadow-xl shadow-indigo-600/30 hover:from-indigo-500 hover:to-violet-500 active:scale-95 transition-all"
+          className="hidden md:flex absolute bottom-6 right-6 z-10 items-center gap-2 h-10 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold shadow-xl shadow-indigo-600/30 hover:from-indigo-500 hover:to-violet-500 active:scale-95 transition-all"
         >
           <LocateFixed className="h-4 w-4" />
           Use my location
         </button>
 
-        {/* ── Floating: Coordinates pill ── */}
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-0 bg-white/95 backdrop-blur-md border border-white/80 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+        {/* ── Floating: Coordinates pill (desktop only) ── */}
+        <div className="hidden md:flex absolute top-4 right-4 z-10 items-center gap-0 bg-white/95 backdrop-blur-md border border-white/80 shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
           <div className="px-4 py-2.5 text-center">
             <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">Lat</p>
             <p className="text-xs font-mono font-bold text-slate-800 mt-0.5">
@@ -480,8 +538,8 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* ── Floating: Map hint ── */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 ml-[290px] z-10 pointer-events-none">
+        {/* ── Floating: Map hint (desktop only) ── */}
+        <div className="hidden md:block absolute bottom-6 left-1/2 -translate-x-1/2 ml-[290px] z-10 pointer-events-none">
           <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-white/70 rounded-full px-4 py-2 shadow-lg shadow-black/8">
             <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
             <span className="text-xs font-semibold text-slate-600">
@@ -497,75 +555,86 @@ export default function OnboardingPage() {
      STEP 1 — Review
   ══════════════════════════════════════════ */
   if (step === 1) {
+    const reviewRows = [
+      { label: "Center Name", value: w.name },
+      { label: "Type", value: ORG_TYPES.find((t) => t.value === w.type)?.label },
+      { label: "Description", value: w.description },
+      { label: "Email", value: w.email },
+      { label: "Phone", value: w.phone },
+      ...(w.website ? [{ label: "Website", value: w.website }] : []),
+      { label: "Location", value: w.location_text },
+      { label: "Coordinates", value: `${w.latitude?.toFixed(5)}, ${w.longitude?.toFixed(5)}` },
+      {
+        label: "Attendance Radius",
+        value: w.attendance_radius_enabled ? `${w.attendance_radius_meters} m` : "Disabled",
+      },
+    ];
+
     return (
       <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
-        <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-8">
+        {/* Header */}
+        <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 md:px-8">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+            <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/30">
               <GraduationCap className="h-3.5 w-3.5 text-white" />
             </div>
             <span className="text-sm font-bold text-slate-900">TutorLMS</span>
           </div>
-          <div className="flex items-center gap-1.5 text-xs">
+          {/* Breadcrumb — hidden on very small screens */}
+          <div className="hidden sm:flex items-center gap-1.5 text-xs">
             <span className="text-slate-400">Center Details</span>
             <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
             <span className="font-semibold text-indigo-600">Review</span>
             <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
             <span className="text-slate-400">Done</span>
           </div>
-          <div className="w-24" />
+          {/* Mobile: step badge */}
+          <div className="sm:hidden">
+            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-2.5 py-1">
+              Step 2 of 2
+            </span>
+          </div>
+          <div className="hidden sm:block w-24" />
         </header>
 
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex-1 px-4 md:px-8 py-6 md:py-0 md:flex md:items-center md:justify-center">
           <div className="w-full max-w-lg">
-            <h1 className="text-xl font-extrabold text-slate-900 mb-1">Confirm your details</h1>
-            <p className="text-sm text-slate-500 mb-6">
-              Everything look right? Submit to send for review.
-            </p>
+            <div className="mb-5">
+              <h1 className="text-xl font-extrabold text-slate-900 mb-1">Confirm your details</h1>
+              <p className="text-sm text-slate-500">
+                Everything look right? Submit to send for review.
+              </p>
+            </div>
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-5">
-              {[
-                { label: "Center Name", value: w.name },
-                { label: "Type", value: ORG_TYPES.find((t) => t.value === w.type)?.label },
-                { label: "Description", value: w.description },
-                { label: "Email", value: w.email },
-                { label: "Phone", value: w.phone },
-                ...(w.website ? [{ label: "Website", value: w.website }] : []),
-                { label: "Location", value: w.location_text },
-                {
-                  label: "Coordinates",
-                  value: `${w.latitude?.toFixed(5)}, ${w.longitude?.toFixed(5)}`,
-                },
-                {
-                  label: "Attendance Radius",
-                  value: w.attendance_radius_enabled
-                    ? `${w.attendance_radius_meters} m`
-                    : "Disabled",
-                },
-              ].map(({ label, value }, i, arr) => (
+              {reviewRows.map(({ label, value }, i, arr) => (
                 <div
                   key={label}
-                  className={`flex justify-between px-5 py-3 ${i < arr.length - 1 ? "border-b border-slate-50" : ""}`}
+                  className={`flex flex-col sm:flex-row sm:justify-between px-4 md:px-5 py-3 gap-0.5 sm:gap-4 ${
+                    i < arr.length - 1 ? "border-b border-slate-50" : ""
+                  }`}
                 >
-                  <span className="text-xs font-semibold text-slate-400 w-32 shrink-0 pt-0.5">
+                  <span className="text-xs font-semibold text-slate-400 sm:w-32 shrink-0">
                     {label}
                   </span>
-                  <span className="text-sm text-slate-800 font-medium text-right">{value}</span>
+                  <span className="text-sm text-slate-800 font-medium sm:text-right break-all">
+                    {value}
+                  </span>
                 </div>
               ))}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 pb-6 md:pb-0">
               <button
                 onClick={() => setStep(0)}
-                className="flex items-center gap-1.5 h-10 px-5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors"
+                className="flex items-center gap-1.5 h-11 px-5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors shrink-0"
               >
                 <ArrowLeft className="h-3.5 w-3.5" /> Edit
               </button>
               <button
                 onClick={submitRequest}
                 disabled={submitting}
-                className="flex-1 h-10 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
+                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-bold hover:from-indigo-500 hover:to-violet-500 disabled:opacity-60 transition-all shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 active:scale-[0.99]"
               >
                 <Building2 className="h-4 w-4" />
                 {submitting ? "Submitting..." : "Submit Request"}
@@ -581,28 +650,28 @@ export default function OnboardingPage() {
      STEP 2 — Done
   ══════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center p-6">
-      <div className="w-full max-w-md text-center">
+    <div className="min-h-screen bg-[#F7F8FA] flex flex-col items-center justify-center px-5 py-12">
+      <div className="w-full max-w-sm text-center">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500 shadow-xl shadow-emerald-500/30 mb-6">
           <CheckCircle className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-2xl font-extrabold text-slate-900 mb-2">You&apos;re in the queue!</h1>
-        <p className="text-slate-500 mb-8">
+        <p className="text-slate-500 mb-8 text-sm leading-relaxed">
           Request submitted for{" "}
           <span className="font-semibold text-slate-700">{submittedName}</span>.
         </p>
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl px-5 py-4 mb-8 text-left">
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-4 mb-8 text-left">
           <Clock className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-bold text-amber-800">Approved within 24 hours</p>
-            <p className="text-xs text-amber-600 mt-0.5">
+            <p className="text-xs text-amber-600 mt-0.5 break-all">
               Confirmation going to <span className="font-semibold">{submittedEmail}</span>
             </p>
           </div>
         </div>
         <Link
           href="/login"
-          className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-7 py-2.5 text-sm font-bold text-white hover:bg-slate-800 transition-colors"
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-7 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-colors"
         >
           Go to Sign In <ArrowRight className="h-4 w-4" />
         </Link>
