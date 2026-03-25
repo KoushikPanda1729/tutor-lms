@@ -5,38 +5,68 @@ import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Building2,
-  Mail,
-  Phone,
   MapPin,
-  Users,
-  BookOpen,
   CheckCircle,
   XCircle,
   AlertTriangle,
   FileText,
-  Video,
-  ClipboardList,
-  CalendarCheck,
-  UserCheck,
-  TrendingUp,
+  Layers,
+  Navigation,
+  Radio,
+  Loader2,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StatCard } from "@/components/ui/stat-card";
-import {
-  mockOrganizations,
-  mockBatches,
-  mockStudents,
-  mockTeachers,
-  mockNotes,
-  mockVideos,
-  mockTests,
-  mockAttendance,
-} from "@/lib/mock-data";
-import { formatDate, formatDateTime, getInitials, cn } from "@/lib/utils";
+import { api } from "@/lib/api";
+import { formatDate, cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+type OrgRequest = {
+  id: string;
+  org_id?: string;
+  requester_id: string;
+  status: "pending" | "active" | "suspended" | "rejected";
+  org_name: string;
+  org_type: string;
+  org_description: string;
+  org_logo_url: string;
+  org_cover_image_url: string;
+  org_location_text: string;
+  org_latitude: number;
+  org_longitude: number;
+  org_attendance_radius_meters: number;
+  org_attendance_radius_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+type Organisation = {
+  id: string;
+  request_id?: string;
+  status: "pending" | "active" | "suspended" | "rejected";
+  name: string;
+  type: string;
+  description: string;
+  logo_url: string;
+  cover_image_url: string;
+  location_text: string;
+  latitude: number;
+  longitude: number;
+  attendance_radius_meters: number;
+  attendance_radius_enabled: boolean;
+  member_count?: number;
+  course_count?: number;
+  requester_id?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type ActionType = "approve" | "deny" | null;
 
 function statusVariant(status: string) {
   const map: Record<string, "success" | "pending" | "suspended" | "destructive"> = {
@@ -48,800 +78,613 @@ function statusVariant(status: string) {
   return map[status] || ("secondary" as "success");
 }
 
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+// ─── Review Note Dialog ───────────────────────────────────────────────────────
+function ReviewNoteDialog({
+  action,
+  orgName,
+  isPending,
+  onConfirm,
+  onCancel,
+}: {
+  action: ActionType;
+  orgName: string;
+  isPending: boolean;
+  onConfirm: (note: string) => void;
+  onCancel: () => void;
+}) {
+  const [note, setNote] = useState(
+    action === "approve"
+      ? "Approved. Welcome aboard!"
+      : "Denied. Please provide more details about your institute."
+  );
+
+  if (!action) return null;
+
+  const isApprove = action === "approve";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+        {/* Icon */}
+        <div
+          className={cn(
+            "h-12 w-12 rounded-2xl flex items-center justify-center",
+            isApprove ? "bg-emerald-50" : "bg-red-50"
+          )}
+        >
+          {isApprove ? (
+            <CheckCircle className="h-6 w-6 text-emerald-600" />
+          ) : (
+            <XCircle className="h-6 w-6 text-red-500" />
+          )}
+        </div>
+
+        <div>
+          <h3 className="text-base font-bold text-slate-900">
+            {isApprove ? "Approve Organization" : "Deny Request"}
+          </h3>
+          <p className="text-sm text-slate-500 mt-0.5">
+            {isApprove
+              ? `Approving "${orgName}" will activate their account.`
+              : `Denying "${orgName}"'s request will notify the requester.`}
+          </p>
+        </div>
+
+        {/* Review note */}
+        <div>
+          <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+            <MessageSquare className="h-3 w-3" />
+            Review Note
+          </label>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            placeholder="Add a review note..."
+          />
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={onCancel}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant={isApprove ? "success" : "destructive"}
+            size="sm"
+            className="flex-1"
+            onClick={() => onConfirm(note)}
+            disabled={isPending}
+          >
+            {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {isApprove ? "Approve" : "Deny"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+function DetailSkeleton() {
+  return (
+    <div className="animate-pulse space-y-6">
+      <div className="h-4 w-48 bg-slate-100 rounded" />
+      <div className="space-y-2">
+        <div className="h-7 w-64 bg-slate-100 rounded" />
+        <div className="h-4 w-40 bg-slate-100 rounded" />
+      </div>
+      <div className="h-48 bg-slate-100 rounded-xl" />
+    </div>
+  );
+}
+
+// ─── Info row ─────────────────────────────────────────────────────────────────
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3 py-3 border-b border-slate-50 last:border-0">
+      <div className="h-7 w-7 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 mt-0.5">
+        <Icon className="h-3.5 w-3.5 text-slate-400" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+          {label}
+        </p>
+        <div className="text-sm font-medium text-slate-800 break-words">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Stat mini card ───────────────────────────────────────────────────────────
+function MiniStat({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string | number;
+  color: string;
+}) {
+  return (
+    <div className="bg-slate-50 rounded-xl px-4 py-3">
+      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+      <p className={`text-xl font-bold ${color}`}>{value}</p>
+    </div>
+  );
+}
+
+// ─── Detail Content ───────────────────────────────────────────────────────────
 function OrgDetailContent({ orgId }: { orgId: string }) {
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") ?? "overview";
-  const org = mockOrganizations.find((o) => o.id === orgId) || mockOrganizations[0];
-  const [status, setStatus] = useState(org.status);
+  const queryClient = useQueryClient();
 
-  // All org data (in real app, filtered by org.id)
-  const batches = mockBatches.filter((b) => b.orgId === org.id);
-  const students = mockStudents.filter((s) => s.orgId === org.id);
-  const teachers = mockTeachers.filter((t) => t.orgId === org.id);
-  const notes = mockNotes;
-  const videos = mockVideos;
-  const tests = mockTests;
-  const attendance = mockAttendance;
+  const [pendingAction, setPendingAction] = useState<ActionType>(null);
 
-  const handleApprove = () => {
-    setStatus("active");
-    toast.success(`${org.name} approved!`);
-  };
-  const handleReject = () => {
-    setStatus("rejected");
-    toast.error(`${org.name} rejected.`);
-  };
-  const handleSuspend = () => {
-    setStatus("suspended");
-    toast.warning(`${org.name} suspended.`);
-  };
+  // Step 1: try the organisation-request endpoint (works for pending/new orgs)
+  const {
+    data: requestData,
+    isLoading: isRequestLoading,
+    isError: isRequestError,
+    isFetched: isRequestFetched,
+  } = useQuery({
+    queryKey: ["organisation-request", orgId],
+    queryFn: () => api.get<OrgRequest>(`/organisation-requests/${orgId}`),
+    retry: false,
+  });
+
+  // Step 2: if request 404'd, fall back to the organisation endpoint (approved orgs navigated via org_id)
+  const {
+    data: orgData,
+    isLoading: isOrgLoading,
+    isError: isOrgError,
+  } = useQuery({
+    queryKey: ["organisation", orgId],
+    queryFn: () => api.get<Organisation>(`/organisations/${orgId}`),
+    enabled: isRequestFetched && isRequestError,
+    retry: false,
+  });
+
+  const isLoading = isRequestLoading || (isRequestError && isOrgLoading);
+  const isError = isRequestError && isOrgError;
+
+  // Normalise into a single display object
+  const orgRequest = requestData?.data ?? null;
+  const orgRecord = orgData?.data ?? null;
+
+  // Build unified display fields from whichever source succeeded
+  const displayOrg = orgRequest
+    ? {
+        id: orgRequest.id,
+        name: orgRequest.org_name,
+        type: orgRequest.org_type,
+        description: orgRequest.org_description,
+        logo_url: orgRequest.org_logo_url,
+        cover_image_url: orgRequest.org_cover_image_url,
+        location_text: orgRequest.org_location_text,
+        latitude: orgRequest.org_latitude,
+        longitude: orgRequest.org_longitude,
+        attendance_radius_meters: orgRequest.org_attendance_radius_meters,
+        attendance_radius_enabled: orgRequest.org_attendance_radius_enabled,
+        status: orgRequest.status,
+        created_at: orgRequest.created_at,
+        updated_at: orgRequest.updated_at,
+      }
+    : orgRecord
+      ? {
+          id: orgRecord.id,
+          name: orgRecord.name,
+          type: orgRecord.type,
+          description: orgRecord.description,
+          logo_url: orgRecord.logo_url,
+          cover_image_url: orgRecord.cover_image_url,
+          location_text: orgRecord.location_text,
+          latitude: orgRecord.latitude,
+          longitude: orgRecord.longitude,
+          attendance_radius_meters: orgRecord.attendance_radius_meters,
+          attendance_radius_enabled: orgRecord.attendance_radius_enabled,
+          status: orgRecord.status,
+          created_at: orgRecord.created_at,
+          updated_at: orgRecord.updated_at,
+        }
+      : null;
+
+  const { mutate: submitAction, isPending: isActioning } = useMutation({
+    mutationFn: ({ action, note }: { action: ActionType; note: string }) =>
+      api.post(`/organisation-requests/${orgId}/${action}`, { review_note: note }),
+    onSuccess: (_, { action }) => {
+      queryClient.invalidateQueries({ queryKey: ["organisation-request", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["organisation", orgId] });
+      queryClient.invalidateQueries({ queryKey: ["organisation-requests"] });
+      toast.success(action === "approve" ? "Organization approved!" : "Request denied.");
+      setPendingAction(null);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message ?? "Failed to update status.");
+    },
+  });
+
+  if (isLoading) return <DetailSkeleton />;
+
+  if (isError || !displayOrg) {
+    return (
+      <div className="bg-red-50 border border-red-100 rounded-xl px-5 py-4 text-sm text-red-600 font-medium">
+        Failed to load organization details. Please try again.
+      </div>
+    );
+  }
+
+  const org = displayOrg;
+  const status = org.status;
+  const city = org.location_text.split(",")[0]?.trim() ?? org.location_text;
+  const tabs = [
+    { label: "Overview", tab: "overview" },
+    { label: "Location", tab: "location" },
+  ];
 
   return (
-    <div>
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          href="/super-admin/organizations"
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" /> Organizations
-        </Link>
-        <span className="text-slate-300">/</span>
-        <span className="text-sm font-medium text-slate-900">{org.name}</span>
-      </div>
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
-            {org.name}
-            <Badge variant={statusVariant(status)} className="capitalize">
-              {status}
-            </Badge>
-          </h2>
-          <p className="text-sm text-slate-500 mt-0.5 break-all sm:break-normal">
-            {org.slug}.tutorlms.com · {org.city} · {org.plan} plan
-          </p>
-        </div>
-        <div className="flex gap-2 shrink-0">
-          {status === "pending" && (
-            <>
-              <Button variant="destructive" size="sm" onClick={handleReject}>
-                <XCircle className="h-3.5 w-3.5" /> Reject
-              </Button>
-              <Button variant="success" size="sm" onClick={handleApprove}>
-                <CheckCircle className="h-3.5 w-3.5" /> Approve
-              </Button>
-            </>
-          )}
-          {status === "active" && (
-            <Button variant="warning" size="sm" onClick={handleSuspend}>
-              <AlertTriangle className="h-3.5 w-3.5" /> Suspend
-            </Button>
-          )}
-          {status === "suspended" && (
-            <Button variant="success" size="sm" onClick={handleApprove}>
-              <CheckCircle className="h-3.5 w-3.5" /> Reactivate
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Top stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          title="Students"
-          value={students.length}
-          icon={Users}
-          iconColor="text-blue-600"
-          iconBg="bg-blue-50"
+    <>
+      {/* Review Note Dialog */}
+      {pendingAction && (
+        <ReviewNoteDialog
+          action={pendingAction}
+          orgName={org.name}
+          isPending={isActioning}
+          onConfirm={(note) => submitAction({ action: pendingAction, note })}
+          onCancel={() => setPendingAction(null)}
         />
-        <StatCard
-          title="Batches"
-          value={batches.length}
-          icon={BookOpen}
-          iconColor="text-indigo-600"
-          iconBg="bg-indigo-50"
-        />
-        <StatCard
-          title="Teachers"
-          value={teachers.length}
-          icon={UserCheck}
-          iconColor="text-green-600"
-          iconBg="bg-green-50"
-        />
-        <StatCard
-          title="Tests Created"
-          value={tests.length}
-          icon={ClipboardList}
-          iconColor="text-amber-600"
-          iconBg="bg-amber-50"
-        />
-      </div>
+      )}
 
-      {/* Mobile tab bar — hidden on desktop (desktop uses sidebar) */}
-      <div className="lg:hidden flex items-center gap-1.5 overflow-x-auto pb-1 mb-5 -mx-4 px-4 scrollbar-none">
-        {[
-          { label: "Overview", tab: "overview" },
-          { label: "Batches", tab: "batches" },
-          { label: "Students", tab: "students" },
-          { label: "Teachers", tab: "teachers" },
-          { label: "Content", tab: "content" },
-          { label: "Tests", tab: "tests" },
-          { label: "Attendance", tab: "attendance" },
-        ].map((t) => (
-          <Link
-            key={t.tab}
-            href={`/super-admin/organizations/${orgId}?tab=${t.tab}`}
-            className={cn(
-              "shrink-0 inline-flex items-center h-8 px-3.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border",
-              activeTab === t.tab
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white border-slate-200 text-slate-500"
-            )}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </div>
-
-      {/* Content */}
       <div>
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-3 mb-6">
+          <Link
+            href="/super-admin/organizations"
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> Organizations
+          </Link>
+          <span className="text-slate-300">/</span>
+          <span className="text-sm font-medium text-slate-900 truncate max-w-[200px]">
+            {org.name}
+          </span>
+        </div>
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+              <span className="text-base font-bold text-indigo-600">{getInitials(org.name)}</span>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
+                {org.name}
+                <Badge variant={statusVariant(status)} className="capitalize">
+                  {status}
+                </Badge>
+              </h2>
+              <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-1.5">
+                <MapPin className="h-3 w-3 shrink-0" />
+                {city}
+                <span className="text-slate-300">·</span>
+                <Layers className="h-3 w-3 shrink-0" />
+                <span className="capitalize">{org.type}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Action buttons — only when a pending request record exists */}
+          {orgRequest && (
+            <div className="flex gap-2 shrink-0">
+              {status === "pending" && (
+                <>
+                  <Button variant="destructive" size="sm" onClick={() => setPendingAction("deny")}>
+                    <XCircle className="h-3.5 w-3.5" /> Deny
+                  </Button>
+                  <Button variant="success" size="sm" onClick={() => setPendingAction("approve")}>
+                    <CheckCircle className="h-3.5 w-3.5" /> Approve
+                  </Button>
+                </>
+              )}
+              {status === "active" && (
+                <Button variant="warning" size="sm" onClick={() => setPendingAction("deny")}>
+                  <AlertTriangle className="h-3.5 w-3.5" /> Suspend
+                </Button>
+              )}
+              {status === "suspended" && (
+                <Button variant="success" size="sm" onClick={() => setPendingAction("approve")}>
+                  <CheckCircle className="h-3.5 w-3.5" /> Reactivate
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-5 -mx-4 px-4 scrollbar-none">
+          {tabs.map((t) => (
+            <Link
+              key={t.tab}
+              href={`/super-admin/organizations/${orgId}?tab=${t.tab}`}
+              className={cn(
+                "shrink-0 inline-flex items-center h-8 px-3.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap border",
+                activeTab === t.tab
+                  ? "bg-slate-900 text-white border-slate-900"
+                  : "bg-white border-slate-200 text-slate-500"
+              )}
+            >
+              {t.label}
+            </Link>
+          ))}
+        </div>
+
         {/* OVERVIEW */}
         {activeTab === "overview" && (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Center Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <dl className="grid grid-cols-2 gap-4">
-                      {[
-                        { icon: Building2, label: "Center Name", value: org.name },
-                        { icon: MapPin, label: "City", value: org.city },
-                        { icon: Mail, label: "Email", value: org.email },
-                        { icon: Phone, label: "Phone", value: org.phone },
-                        { icon: Users, label: "Total Students", value: org.totalStudents },
-                        { icon: BookOpen, label: "Total Batches", value: org.totalBatches },
-                      ].map(({ icon: Icon, label, value }) => (
-                        <div key={label}>
-                          <dt className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1">
-                            <Icon className="h-3.5 w-3.5" /> {label}
-                          </dt>
-                          <dd className="text-sm font-semibold text-slate-800">{value}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </CardContent>
-                </Card>
-
-                {/* Recent batches */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Batches</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {/* Mobile cards */}
-                    <div className="sm:hidden divide-y divide-slate-50">
-                      {batches.map((b) => (
-                        <div
-                          key={b.id}
-                          className="px-4 py-3 flex items-start justify-between gap-3"
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Organization Information</CardTitle>
+                </CardHeader>
+                <CardContent className="px-5 py-2">
+                  <InfoRow icon={Building2} label="Name" value={org.name} />
+                  <InfoRow
+                    icon={Layers}
+                    label="Type"
+                    value={<span className="capitalize">{org.type}</span>}
+                  />
+                  <InfoRow icon={MapPin} label="Location" value={org.location_text} />
+                  <InfoRow
+                    icon={FileText}
+                    label="Description"
+                    value={
+                      org.description || (
+                        <span className="text-slate-400 italic">No description provided</span>
+                      )
+                    }
+                  />
+                  {org.logo_url && (
+                    <InfoRow
+                      icon={FileText}
+                      label="Logo URL"
+                      value={
+                        <a
+                          href={org.logo_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:underline break-all text-xs"
                         >
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 truncate">
-                              {b.name}
-                            </p>
-                            <p className="text-xs text-slate-400 mt-0.5">
-                              {b.subject} · {b.studentCount} students
-                            </p>
-                          </div>
-                          <Badge
-                            variant={b.status === "active" ? "success" : "secondary"}
-                            className="capitalize shrink-0"
-                          >
-                            {b.status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Desktop table */}
-                    <table className="hidden sm:table w-full">
-                      <thead>
-                        <tr className="border-b border-slate-100">
-                          {["Batch", "Subject", "Students", "Status"].map((h) => (
-                            <th
-                              key={h}
-                              className="px-4 py-3 text-left text-xs font-semibold text-slate-500"
-                            >
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {batches.map((b) => (
-                          <tr key={b.id} className="border-b border-slate-50">
-                            <td className="px-4 py-3 text-sm font-medium text-slate-800">
-                              {b.name}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-slate-500">{b.subject}</td>
-                            <td className="px-4 py-3 text-sm text-slate-600">{b.studentCount}</td>
-                            <td className="px-4 py-3">
-                              <Badge
-                                variant={b.status === "active" ? "success" : "secondary"}
-                                className="capitalize"
-                              >
-                                {b.status}
-                              </Badge>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </CardContent>
-                </Card>
-              </div>
+                          {org.logo_url}
+                        </a>
+                      }
+                    />
+                  )}
+                  {org.cover_image_url && (
+                    <InfoRow
+                      icon={FileText}
+                      label="Cover Image URL"
+                      value={
+                        <a
+                          href={org.cover_image_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:underline break-all text-xs"
+                        >
+                          {org.cover_image_url}
+                        </a>
+                      }
+                    />
+                  )}
+                </CardContent>
+              </Card>
 
-              <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Radio className="h-4 w-4 text-green-500" />
+                    Attendance Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <MiniStat
+                      label="Radius (meters)"
+                      value={org.attendance_radius_meters}
+                      color="text-indigo-600"
+                    />
+                    <MiniStat
+                      label="Radius Enabled"
+                      value={org.attendance_radius_enabled ? "Yes" : "No"}
+                      color={org.attendance_radius_enabled ? "text-green-600" : "text-slate-400"}
+                    />
+                    <MiniStat
+                      label="Coordinates"
+                      value={`${org.latitude.toFixed(4)}, ${org.longitude.toFixed(4)}`}
+                      color="text-slate-700"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Request Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Status</p>
+                    <Badge variant={statusVariant(status)} className="capitalize">
+                      {status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Type</p>
+                    <Badge variant="secondary" className="capitalize">
+                      {org.type}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Created</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {formatDate(org.created_at)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">Last Updated</p>
+                    <p className="text-sm font-medium text-slate-800">
+                      {formatDate(org.updated_at)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-0.5">ID</p>
+                    <p className="text-xs font-mono text-slate-500 break-all">{org.id}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {orgRequest && status === "pending" && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Account Details</CardTitle>
+                    <CardTitle>Quick Actions</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2">
+                    <Button
+                      variant="success"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setPendingAction("approve")}
+                    >
+                      <CheckCircle className="h-3.5 w-3.5" /> Approve Organization
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setPendingAction("deny")}
+                    >
+                      <XCircle className="h-3.5 w-3.5" /> Deny Request
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+              {status === "rejected" && (
+                <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs text-slate-400 text-center">
+                  This request has been denied.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* LOCATION */}
+        {activeTab === "location" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Navigation className="h-4 w-4 text-indigo-500" />
+                    Location Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-slate-50 rounded-xl p-4 space-y-3">
                     <div>
-                      <p className="text-xs text-slate-500 mb-0.5">Plan</p>
-                      <Badge variant="secondary" className="capitalize">
-                        {org.plan}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-0.5">Status</p>
-                      <Badge variant={statusVariant(status)} className="capitalize">
-                        {status}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-0.5">Joined</p>
-                      <p className="text-sm font-medium text-slate-800">
-                        {formatDate(org.createdAt)}
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                        Full Address
                       </p>
+                      <p className="text-sm font-medium text-slate-800">{org.location_text}</p>
                     </div>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-0.5">Subdomain</p>
-                      <p className="text-sm font-mono text-slate-800">{org.slug}.tutorlms.com</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Content Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {[
-                      {
-                        icon: FileText,
-                        label: "Notes",
-                        value: notes.length,
-                        color: "text-red-500",
-                      },
-                      {
-                        icon: Video,
-                        label: "Videos",
-                        value: videos.length,
-                        color: "text-purple-500",
-                      },
-                      {
-                        icon: ClipboardList,
-                        label: "Tests",
-                        value: tests.length,
-                        color: "text-amber-500",
-                      },
-                      {
-                        icon: CalendarCheck,
-                        label: "Attendance Records",
-                        value: attendance.length,
-                        color: "text-green-500",
-                      },
-                    ].map(({ icon: Icon, label, value, color }) => (
-                      <div key={label} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <Icon className={`h-4 w-4 ${color}`} /> {label}
-                        </div>
-                        <span className="text-sm font-bold text-slate-800">{value}</span>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* BATCHES */}
-        {activeTab === "batches" && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>All Batches ({batches.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {/* Mobile cards */}
-                <div className="sm:hidden divide-y divide-slate-50">
-                  {batches.map((b) => (
-                    <div key={b.id} className="px-4 py-3 flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{b.name}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          {b.subject} · {b.studentCount} students · {formatDate(b.createdAt)}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                          Latitude
                         </p>
+                        <p className="text-sm font-mono text-slate-800">{org.latitude}</p>
                       </div>
-                      <Badge
-                        variant={b.status === "active" ? "success" : "secondary"}
-                        className="capitalize shrink-0"
-                      >
-                        {b.status}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-                {/* Desktop table */}
-                <table className="hidden sm:table w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      {["Batch Name", "Subject", "Students", "Created", "Status"].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-xs font-semibold text-slate-500"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {batches.map((b) => (
-                      <tr key={b.id} className="border-b border-slate-50 hover:bg-slate-50">
-                        <td className="px-4 py-3">
-                          <p className="text-sm font-semibold text-slate-900">{b.name}</p>
-                          {b.description && (
-                            <p className="text-xs text-slate-400">{b.description}</p>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{b.subject}</td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{b.studentCount}</td>
-                        <td className="px-4 py-3 text-sm text-slate-500">
-                          {formatDate(b.createdAt)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge
-                            variant={b.status === "active" ? "success" : "secondary"}
-                            className="capitalize"
-                          >
-                            {b.status}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {/* STUDENTS */}
-        {activeTab === "students" && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>All Students ({students.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {/* Mobile cards */}
-                <div className="sm:hidden divide-y divide-slate-50">
-                  {students.map((s) => (
-                    <div key={s.id} className="px-4 py-3 flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-indigo-600">
-                          {getInitials(s.name)}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{s.name}</p>
-                        <p className="text-xs text-slate-400 truncate">
-                          {s.email} · {s.phone}
+                      <div>
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                          Longitude
                         </p>
+                        <p className="text-sm font-mono text-slate-800">{org.longitude}</p>
                       </div>
-                      <Badge variant="secondary" className="shrink-0">
-                        {s.enrolledBatches.length}
-                      </Badge>
                     </div>
-                  ))}
-                </div>
-                {/* Desktop table */}
-                <table className="hidden sm:table w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      {["Student", "Email", "Phone", "Batches", "Joined"].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-xs font-semibold text-slate-500"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {students.map((s) => (
-                      <tr key={s.id} className="border-b border-slate-50 hover:bg-slate-50">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-7 w-7 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                              <span className="text-xs font-bold text-indigo-600">
-                                {getInitials(s.name)}
-                              </span>
-                            </div>
-                            <span className="text-sm font-medium text-slate-800">{s.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{s.email}</td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{s.phone}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant="secondary">{s.enrolledBatches.length} batches</Badge>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">
-                          {formatDate(s.createdAt)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {/* TEACHERS */}
-        {activeTab === "teachers" && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>All Teachers ({teachers.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {/* Mobile cards */}
-                <div className="sm:hidden divide-y divide-slate-50">
-                  {teachers.map((t) => (
-                    <div key={t.id} className="px-4 py-3 flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-green-600">
-                          {getInitials(t.name)}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{t.name}</p>
-                        <p className="text-xs text-slate-400 truncate">
-                          {t.email} · {t.phone}
-                        </p>
-                      </div>
-                      <Badge variant="secondary" className="shrink-0">
-                        {t.assignedBatches.length}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-                {/* Desktop table */}
-                <table className="hidden sm:table w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      {["Teacher", "Email", "Phone", "Assigned Batches", "Joined"].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-xs font-semibold text-slate-500"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {teachers.map((t) => (
-                      <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-7 w-7 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                              <span className="text-xs font-bold text-green-600">
-                                {getInitials(t.name)}
-                              </span>
-                            </div>
-                            <span className="text-sm font-medium text-slate-800">{t.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{t.email}</td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{t.phone}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant="secondary">{t.assignedBatches.length} batches</Badge>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">
-                          {formatDate(t.createdAt)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {/* CONTENT */}
-        {activeTab === "content" && (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-red-500" /> Notes ({notes.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {notes.map((n) => (
-                    <div
-                      key={n.id}
-                      className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 gap-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate">{n.title}</p>
-                        <p className="text-xs text-slate-400 truncate">
-                          {n.uploadedBy} · {n.fileSize} · {formatDate(n.createdAt)}
-                        </p>
-                      </div>
-                      <Badge variant="secondary" className="text-xs shrink-0 whitespace-nowrap">
-                        {n.fileSize}
-                      </Badge>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Video className="h-4 w-4 text-purple-500" /> Videos ({videos.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {videos.map((v) => (
-                    <div
-                      key={v.id}
-                      className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 gap-3"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate">{v.title}</p>
-                        <p className="text-xs text-slate-400 truncate">
-                          {v.uploadedBy} · {v.duration} · {formatDate(v.createdAt)}
-                        </p>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className="capitalize text-xs shrink-0 whitespace-nowrap"
-                      >
-                        {v.type}
-                      </Badge>
-                    </div>
-                  ))}
+                  </div>
+                  <a
+                    href={`https://www.openstreetmap.org/?mlat=${org.latitude}&mlon=${org.longitude}&zoom=15`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                  >
+                    <Navigation className="h-3.5 w-3.5" />
+                    View on OpenStreetMap
+                  </a>
                 </CardContent>
               </Card>
             </div>
-          </>
-        )}
 
-        {/* TESTS */}
-        {activeTab === "tests" && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>All Tests ({tests.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {/* Mobile cards */}
-                <div className="sm:hidden divide-y divide-slate-50">
-                  {tests.map((t) => (
-                    <div key={t.id} className="px-4 py-3 flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{t.title}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          {t.duration} min · {t.totalMarks} marks · {t.questions.length} questions
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          t.status === "available"
-                            ? "success"
-                            : t.status === "scheduled"
-                              ? "pending"
-                              : "secondary"
-                        }
-                        className="capitalize shrink-0"
-                      >
-                        {t.status}
-                      </Badge>
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Radio className="h-4 w-4 text-amber-500" />
+                    Attendance Radius
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Radius Enabled</span>
+                    <Badge variant={org.attendance_radius_enabled ? "success" : "secondary"}>
+                      {org.attendance_radius_enabled ? "Yes" : "No"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Radius</span>
+                    <span className="text-sm font-semibold text-slate-800">
+                      {org.attendance_radius_meters} m
+                    </span>
+                  </div>
+                  {org.attendance_radius_enabled && (
+                    <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-xs text-amber-700">
+                      Students must be within {org.attendance_radius_meters}m of the org location to
+                      mark attendance.
                     </div>
-                  ))}
-                </div>
-                {/* Desktop table */}
-                <table className="hidden sm:table w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      {[
-                        "Test Name",
-                        "Duration",
-                        "Total Marks",
-                        "Questions",
-                        "Available From",
-                        "Status",
-                      ].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-xs font-semibold text-slate-500"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tests.map((t) => (
-                      <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50">
-                        <td className="px-4 py-3">
-                          <p className="text-sm font-semibold text-slate-900">{t.title}</p>
-                          {t.instructions && (
-                            <p className="text-xs text-slate-400 truncate max-w-xs">
-                              {t.instructions}
-                            </p>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{t.duration} min</td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{t.totalMarks}</td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{t.questions.length}</td>
-                        <td className="px-4 py-3 text-xs text-slate-500">
-                          {formatDateTime(t.availableFrom)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge
-                            variant={
-                              t.status === "available"
-                                ? "success"
-                                : t.status === "scheduled"
-                                  ? "pending"
-                                  : "secondary"
-                            }
-                            className="capitalize"
-                          >
-                            {t.status}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        {/* ATTENDANCE */}
-        {activeTab === "attendance" && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Attendance Records ({attendance.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                {/* Mobile cards */}
-                <div className="sm:hidden divide-y divide-slate-50">
-                  {attendance.map((a) => {
-                    const present = a.records.filter((r) => r.present).length;
-                    const total = a.records.length;
-                    const pct = total ? Math.round((present / total) * 100) : 0;
-                    const batch = mockBatches.find((b) => b.id === a.batchId);
-                    return (
-                      <div key={a.id} className="px-4 py-3">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900 truncate">
-                              {batch?.name || a.batchId}
-                            </p>
-                            <p className="text-xs text-slate-400">
-                              {formatDate(a.date)} ·{" "}
-                              <span className="text-green-600 font-medium">{present} present</span>{" "}
-                              ·{" "}
-                              <span className="text-red-500 font-medium">
-                                {total - present} absent
-                              </span>
-                            </p>
-                          </div>
-                          <span
-                            className={`text-sm font-bold ${pct >= 75 ? "text-green-600" : "text-red-500"}`}
-                          >
-                            {pct}%
-                          </span>
-                        </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full">
-                          <div
-                            className={`h-1.5 rounded-full ${pct >= 75 ? "bg-green-500" : "bg-red-400"}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                {/* Desktop table */}
-                <table className="hidden sm:table w-full">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      {["Date", "Batch", "Present", "Absent", "Attendance %"].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-left text-xs font-semibold text-slate-500"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {attendance.map((a) => {
-                      const present = a.records.filter((r) => r.present).length;
-                      const total = a.records.length;
-                      const pct = total ? Math.round((present / total) * 100) : 0;
-                      const batch = mockBatches.find((b) => b.id === a.batchId);
-                      return (
-                        <tr key={a.id} className="border-b border-slate-50 hover:bg-slate-50">
-                          <td className="px-4 py-3 text-sm text-slate-800">{formatDate(a.date)}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600">
-                            {batch?.name || a.batchId}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="text-sm font-semibold text-green-600">{present}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="text-sm font-semibold text-red-500">
-                              {total - present}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 h-1.5 bg-slate-100 rounded-full max-w-20">
-                                <div
-                                  className={`h-1.5 rounded-full ${pct >= 75 ? "bg-green-500" : "bg-red-400"}`}
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                              <span
-                                className={`text-xs font-semibold ${pct >= 75 ? "text-green-600" : "text-red-500"}`}
-                              >
-                                {pct}%
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </CardContent>
-            </Card>
-          </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
 
