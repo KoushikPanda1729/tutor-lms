@@ -2,50 +2,51 @@
 
 import { useState, use } from "react";
 import Link from "next/link";
-import {
-  Plus,
-  BookOpen,
-  Users,
-  Trash2,
-  ToggleLeft,
-  ToggleRight,
-  ChevronRight,
-  FileText,
-  ClipboardList,
-  AlertTriangle,
-  Search,
-  Archive,
-} from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Plus, BookOpen, Trash2, ChevronRight, AlertTriangle, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
-import { mockBatches } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import type { Batch } from "@/types";
 
-// Subject → color palette
+type Batch = {
+  id: string;
+  name: string;
+  description: string;
+  subject?: string;
+  is_active: boolean;
+  created_at: string;
+};
+
 const SUBJECT_COLORS: Record<string, { bg: string; icon: string; accent: string; light: string }> =
   {
-    Physics: {
+    physics: {
       bg: "bg-indigo-50",
       icon: "text-indigo-600",
       accent: "bg-indigo-500",
       light: "bg-indigo-100",
     },
-    Chemistry: {
+    chemistry: {
       bg: "bg-violet-50",
       icon: "text-violet-600",
       accent: "bg-violet-500",
       light: "bg-violet-100",
     },
-    Biology: {
+    biology: {
       bg: "bg-emerald-50",
       icon: "text-emerald-600",
       accent: "bg-emerald-500",
       light: "bg-emerald-100",
     },
-    Mathematics: {
+    mathematics: {
+      bg: "bg-amber-50",
+      icon: "text-amber-600",
+      accent: "bg-amber-500",
+      light: "bg-amber-100",
+    },
+    mathmatics: {
       bg: "bg-amber-50",
       icon: "text-amber-600",
       accent: "bg-amber-500",
@@ -53,9 +54,9 @@ const SUBJECT_COLORS: Record<string, { bg: string; icon: string; accent: string;
     },
   };
 
-function getSubjectColor(subject: string) {
+function getSubjectColor(subject?: string) {
   return (
-    SUBJECT_COLORS[subject] ?? {
+    SUBJECT_COLORS[subject?.toLowerCase() ?? ""] ?? {
       bg: "bg-sky-50",
       icon: "text-sky-600",
       accent: "bg-sky-500",
@@ -66,42 +67,43 @@ function getSubjectColor(subject: string) {
 
 export default function BatchesPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const [batches, setBatches] = useState<Batch[]>(mockBatches);
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<"all" | "active" | "archived">("all");
   const [search, setSearch] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Batch | null>(null);
 
+  const { data, isLoading } = useQuery({
+    queryKey: ["batches", slug],
+    queryFn: () => api.get<{ items: Batch[] }>(`/organisations/${slug}/batches`),
+  });
+
+  const batches = data?.data?.items ?? [];
+
+  const deleteMutation = useMutation({
+    mutationFn: (batchId: string) => api.delete(`/organisations/${slug}/batches/${batchId}`),
+    onSuccess: () => {
+      toast.success(`"${deleteTarget?.name}" deleted`);
+      setDeleteTarget(null);
+      void queryClient.invalidateQueries({ queryKey: ["batches", slug] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message ?? "Failed to delete batch");
+    },
+  });
+
   const filtered = batches.filter((b) => {
-    const matchFilter = filter === "all" || b.status === filter;
+    const matchFilter =
+      filter === "all" ||
+      (filter === "active" && b.is_active) ||
+      (filter === "archived" && !b.is_active);
     const matchSearch =
       b.name.toLowerCase().includes(search.toLowerCase()) ||
-      b.subject.toLowerCase().includes(search.toLowerCase());
+      (b.subject ?? "").toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
 
-  const toggleStatus = (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setBatches((prev) =>
-      prev.map((b) =>
-        b.id === id ? { ...b, status: b.status === "active" ? "archived" : "active" } : b
-      )
-    );
-    const batch = batches.find((b) => b.id === id);
-    toast.success(
-      `"${batch?.name}" marked as ${batch?.status === "active" ? "archived" : "active"}`
-    );
-  };
-
-  const deleteBatch = () => {
-    if (!deleteTarget) return;
-    setBatches((prev) => prev.filter((b) => b.id !== deleteTarget.id));
-    toast.success(`"${deleteTarget.name}" deleted`);
-    setDeleteTarget(null);
-  };
-
-  const activeCnt = batches.filter((b) => b.status === "active").length;
-  const archivedCnt = batches.filter((b) => b.status === "archived").length;
+  const activeCnt = batches.filter((b) => b.is_active).length;
+  const archivedCnt = batches.filter((b) => !b.is_active).length;
 
   const filterPills = [
     { id: "all" as const, label: "All", count: batches.length },
@@ -123,7 +125,7 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
         }
       />
 
-      {/* ── Toolbar ─────────────────────────────────────────────────── */}
+      {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -134,7 +136,6 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
             className="h-9 w-full sm:w-56 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
           />
         </div>
-
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           {filterPills.map((pill) => (
             <button
@@ -161,8 +162,12 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
         </div>
       </div>
 
-      {/* ── Batch list ──────────────────────────────────────────────── */}
-      {filtered.length === 0 ? (
+      {/* Batch list */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+        </div>
+      ) : filtered.length === 0 ? (
         <EmptyState
           icon={BookOpen}
           title="No batches found"
@@ -179,7 +184,7 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           {filtered.map((batch, i) => {
             const color = getSubjectColor(batch.subject);
-            const isActive = batch.status === "active";
+            const isActive = batch.is_active;
             return (
               <div
                 key={batch.id}
@@ -214,74 +219,25 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
                       {batch.name}
                     </p>
                     {!isActive && (
-                      <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 shrink-0">
-                        <Archive className="h-2.5 w-2.5" /> Archived
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 shrink-0">
+                        Archived
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
+                  {batch.subject && (
                     <span
                       className={cn(
-                        "text-[11px] font-semibold px-2 py-0.5 rounded-md",
+                        "inline-block mt-1 text-[11px] font-semibold px-2 py-0.5 rounded-md capitalize",
                         isActive ? color.light + " " + color.icon : "bg-slate-100 text-slate-400"
                       )}
                     >
                       {batch.subject}
                     </span>
-                    <span className="sm:hidden text-[11px] text-slate-400 flex items-center gap-1">
-                      <Users className="h-2.5 w-2.5" /> {batch.studentCount}
-                    </span>
-                  </div>
+                  )}
                 </Link>
-
-                {/* Stats */}
-                <div className="hidden sm:flex items-center gap-5 shrink-0">
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-bold text-slate-900">{batch.studentCount}</span>
-                    <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                      <Users className="h-2.5 w-2.5" /> Students
-                    </span>
-                  </div>
-                  <div className="w-px h-6 bg-slate-100" />
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-bold text-slate-900">3</span>
-                    <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                      <FileText className="h-2.5 w-2.5" /> Notes
-                    </span>
-                  </div>
-                  <div className="w-px h-6 bg-slate-100" />
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-sm font-bold text-slate-900">3</span>
-                    <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                      <ClipboardList className="h-2.5 w-2.5" /> Tests
-                    </span>
-                  </div>
-                </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => toggleStatus(batch.id, e)}
-                    title={isActive ? "Archive batch" : "Set active"}
-                    className={cn(
-                      "flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold border transition-colors",
-                      isActive
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        : "border-slate-200 bg-white text-slate-500 hover:bg-slate-100"
-                    )}
-                  >
-                    {isActive ? (
-                      <>
-                        <ToggleRight className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Active</span>
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Archived</span>
-                      </>
-                    )}
-                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -303,7 +259,7 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
         </div>
       )}
 
-      {/* ── Delete confirmation ──────────────────────────────────────── */}
+      {/* Delete confirmation */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -323,8 +279,7 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
                 <span className="font-semibold text-slate-700">
                   &ldquo;{deleteTarget.name}&rdquo;
                 </span>
-                ?
-                <br />
+                ?<br />
                 This will permanently remove all students, tests, notes, and attendance records.
               </p>
             </div>
@@ -334,9 +289,9 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-900 truncate">{deleteTarget.name}</p>
-                <p className="text-xs text-slate-500">
-                  {deleteTarget.subject} · {deleteTarget.studentCount} students
-                </p>
+                {deleteTarget.subject && (
+                  <p className="text-xs text-slate-500 capitalize">{deleteTarget.subject}</p>
+                )}
               </div>
             </div>
             <div className="flex gap-3">
@@ -347,10 +302,17 @@ export default function BatchesPage({ params }: { params: Promise<{ slug: string
                 Cancel
               </button>
               <button
-                onClick={deleteBatch}
-                className="flex-1 h-11 rounded-xl bg-red-500 text-sm font-bold text-white hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+                onClick={() => deleteMutation.mutate(deleteTarget.id)}
+                disabled={deleteMutation.isPending}
+                className="flex-1 h-11 rounded-xl bg-red-500 text-sm font-bold text-white hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                <Trash2 className="h-4 w-4" /> Yes, Delete
+                {deleteMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4" /> Yes, Delete
+                  </>
+                )}
               </button>
             </div>
           </div>

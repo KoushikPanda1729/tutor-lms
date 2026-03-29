@@ -26,10 +26,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
 
 const schema = z.object({
   name: z.string().min(3, "Batch name is required"),
-  subject: z.string().min(1, "Select a subject"),
+  subject: z.string().optional(),
   description: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
@@ -110,6 +112,7 @@ const SUBJECT_OPTIONS = [
 export default function NewBatchPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [selectedSubject, setSelectedSubject] = useState("");
   const [watchedName, setWatchedName] = useState("");
 
@@ -122,10 +125,19 @@ export default function NewBatchPage({ params }: { params: Promise<{ slug: strin
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (_data: FormData) => {
-    await new Promise((r) => setTimeout(r, 800));
-    toast.success("Batch created successfully!");
-    router.push(`/org/${slug}/batches`);
+  const onSubmit = async (data: FormData) => {
+    try {
+      await api.post(`/organisations/${slug}/batches`, {
+        name: data.name,
+        ...(data.subject ? { subject: data.subject } : {}),
+        ...(data.description ? { description: data.description } : {}),
+      });
+      await queryClient.invalidateQueries({ queryKey: ["batches", slug] });
+      toast.success("Batch created successfully!");
+      router.push(`/org/${slug}/batches`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create batch");
+    }
   };
 
   const handleSubjectSelect = (value: string) => {
@@ -180,7 +192,9 @@ export default function NewBatchPage({ params }: { params: Promise<{ slug: strin
 
             {/* Subject */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-              <label className="block text-sm font-semibold text-slate-900 mb-0.5">Subject</label>
+              <label className="block text-sm font-semibold text-slate-900 mb-0.5">
+                Subject <span className="text-xs font-normal text-slate-400">(optional)</span>
+              </label>
               <p className="text-xs text-slate-400 mb-4">
                 Choose the primary subject for this batch
               </p>
@@ -202,9 +216,6 @@ export default function NewBatchPage({ params }: { params: Promise<{ slug: strin
                   );
                 })}
               </div>
-              {errors.subject && (
-                <p className="mt-2 text-xs text-red-500">{errors.subject.message}</p>
-              )}
             </div>
 
             {/* Description */}
