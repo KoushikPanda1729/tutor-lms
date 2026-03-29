@@ -78,28 +78,32 @@ export default function OnboardingPage() {
   const dispatch = useDispatch();
   const authUser = useSelector((state: RootState) => state.auth.user);
 
+  type MeOrg = { organisation_id: string; organisation_name: string; role: string; status: string };
+
+  function handleApproved(org: MeOrg) {
+    if (authUser) {
+      dispatch(
+        setUser({
+          ...authUser,
+          organisations: [{ id: org.organisation_id, name: org.organisation_name, role: org.role }],
+        })
+      );
+    }
+    router.push(`/org/${org.organisation_id}/dashboard`);
+  }
+
   // On initial mount: single check (handles page refresh while waiting).
+  // Use token from localStorage — Redux is empty after a hard refresh.
   useEffect(() => {
-    const orgId = localStorage.getItem("pending_org_id");
-    if (!orgId) return;
+    if (!localStorage.getItem("access_token")) return;
     api
-      .get<{ id: string; name: string }>(`/public/organisations/${orgId}`)
+      .get<{ organisations: MeOrg[] }>("/users/me")
       .then((res) => {
-        if (res?.data?.id) {
-          localStorage.removeItem("pending_org_id");
-          if (authUser) {
-            dispatch(
-              setUser({
-                ...authUser,
-                organisations: [{ id: res.data.id, name: res.data.name, role: "owner" }],
-              })
-            );
-          }
-          router.push(`/org/${res.data.id}/dashboard`);
-        }
+        const active = res?.data?.organisations?.find((o) => o.status === "active");
+        if (active) handleApproved(active);
       })
       .catch(() => {
-        /* still pending */
+        /* not approved yet */
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -107,29 +111,18 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (step !== 2) return;
 
-    const orgId = localStorage.getItem("pending_org_id");
-    if (!orgId) return;
-
     const interval = setInterval(() => {
       api
-        .get<{ id: string; name: string }>(`/public/organisations/${orgId}`)
+        .get<{ organisations: MeOrg[] }>("/users/me")
         .then((res) => {
-          if (res?.data?.id) {
+          const active = res?.data?.organisations?.find((o) => o.status === "active");
+          if (active) {
             clearInterval(interval);
-            localStorage.removeItem("pending_org_id");
-            if (authUser) {
-              dispatch(
-                setUser({
-                  ...authUser,
-                  organisations: [{ id: res.data.id, name: res.data.name, role: "owner" }],
-                })
-              );
-            }
-            router.push(`/org/${res.data.id}/dashboard`);
+            handleApproved(active);
           }
         })
         .catch(() => {
-          /* still pending */
+          /* not approved yet */
         });
     }, 10000);
 
@@ -207,7 +200,7 @@ export default function OnboardingPage() {
     setSubmitting(true);
     try {
       const data = form.getValues();
-      const res = await api.post<{ id: string }>("/organisation-requests", {
+      await api.post("/organisation-requests", {
         name: data.name,
         type: data.type,
         description: data.description,
@@ -219,10 +212,6 @@ export default function OnboardingPage() {
         attendance_radius_meters: data.attendance_radius_meters,
         attendance_radius_enabled: data.attendance_radius_enabled,
       });
-      // Save the org id so we can poll for approval
-      if (res?.data?.id) {
-        localStorage.setItem("pending_org_id", res.data.id);
-      }
       setSubmittedName(data.name);
       setSubmittedEmail(data.email);
       setStep(2);

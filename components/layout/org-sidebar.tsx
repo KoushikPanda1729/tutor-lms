@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { LogoutDialog } from "@/components/logout-dialog";
+import { useLogout } from "@/hooks/use-logout";
 import {
   LayoutDashboard,
   BookOpen,
@@ -54,12 +54,17 @@ const settingsTabs = [
 interface OrgSidebarProps {
   orgName?: string;
   orgSlug?: string;
+  orgRole?: string;
 }
 
-export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSidebarProps) {
+export function OrgSidebar({
+  orgName = "My Institute",
+  orgSlug = "",
+  orgRole = "",
+}: OrgSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [logoutOpen, setLogoutOpen] = useState(false);
+  const logout = useLogout();
   const [collapsed, setCollapsed] = useState(false);
 
   const pathParts = pathname.split("/");
@@ -93,9 +98,13 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
           <GraduationCap className="h-4 w-4 text-white" />
         </div>
         {!collapsed && (
-          <div className="overflow-hidden">
+          <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-slate-900 leading-tight truncate">{orgName}</p>
-            <p className="text-[11px] text-slate-400">{orgSlug}</p>
+            {orgRole && (
+              <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-md bg-indigo-50 text-[10px] font-semibold text-indigo-600 capitalize leading-none">
+                {orgRole}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -254,7 +263,7 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
       {/* Footer */}
       <div className="px-3 py-3 border-t border-slate-100">
         <button
-          onClick={() => setLogoutOpen(true)}
+          onClick={() => void logout()}
           className={cn(
             "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all",
             collapsed && "justify-center px-0"
@@ -265,7 +274,6 @@ export function OrgSidebar({ orgName = "My Institute", orgSlug = "" }: OrgSideba
           </span>
           {!collapsed && "Sign out"}
         </button>
-        <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
       </div>
     </aside>
   );
