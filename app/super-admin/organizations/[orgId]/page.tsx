@@ -26,29 +26,10 @@ import { formatDate, cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type OrgRequest = {
-  id: string;
-  org_id?: string;
-  requester_id: string;
-  status: "pending" | "active" | "suspended" | "rejected";
-  org_name: string;
-  org_type: string;
-  org_description: string;
-  org_logo_url: string;
-  org_cover_image_url: string;
-  org_location_text: string;
-  org_latitude: number;
-  org_longitude: number;
-  org_attendance_radius_meters: number;
-  org_attendance_radius_enabled: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
 type Organisation = {
   id: string;
   request_id?: string;
-  status: "pending" | "active" | "suspended" | "rejected";
+  status: "pending" | "approved" | "suspended" | "rejected";
   name: string;
   type: string;
   description: string;
@@ -70,12 +51,17 @@ type ActionType = "approve" | "deny" | null;
 
 function statusVariant(status: string) {
   const map: Record<string, "success" | "pending" | "suspended" | "destructive"> = {
+    approved: "success",
     active: "success",
     pending: "pending",
     suspended: "suspended",
     rejected: "destructive",
   };
   return map[status] || ("secondary" as "success");
+}
+
+function statusLabel(status: string) {
+  return status === "approved" ? "active" : status;
 }
 
 function getInitials(name: string) {
@@ -246,81 +232,19 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
 
   const [pendingAction, setPendingAction] = useState<ActionType>(null);
 
-  // Step 1: try the organisation-request endpoint (works for pending/new orgs)
-  const {
-    data: requestData,
-    isLoading: isRequestLoading,
-    isError: isRequestError,
-    isFetched: isRequestFetched,
-  } = useQuery({
-    queryKey: ["organisation-request", orgId],
-    queryFn: () => api.get<OrgRequest>(`/organisation-requests/${orgId}`),
-    retry: false,
-  });
-
-  // Step 2: if request 404'd, fall back to the organisation endpoint (approved orgs navigated via org_id)
-  const {
-    data: orgData,
-    isLoading: isOrgLoading,
-    isError: isOrgError,
-  } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["organisation", orgId],
     queryFn: () => api.get<Organisation>(`/organisations/${orgId}`),
-    enabled: isRequestFetched && isRequestError,
-    retry: false,
   });
 
-  const isLoading = isRequestLoading || (isRequestError && isOrgLoading);
-  const isError = isRequestError && isOrgError;
-
-  // Normalise into a single display object
-  const orgRequest = requestData?.data ?? null;
-  const orgRecord = orgData?.data ?? null;
-
-  // Build unified display fields from whichever source succeeded
-  const displayOrg = orgRequest
-    ? {
-        id: orgRequest.id,
-        name: orgRequest.org_name,
-        type: orgRequest.org_type,
-        description: orgRequest.org_description,
-        logo_url: orgRequest.org_logo_url,
-        cover_image_url: orgRequest.org_cover_image_url,
-        location_text: orgRequest.org_location_text,
-        latitude: orgRequest.org_latitude,
-        longitude: orgRequest.org_longitude,
-        attendance_radius_meters: orgRequest.org_attendance_radius_meters,
-        attendance_radius_enabled: orgRequest.org_attendance_radius_enabled,
-        status: orgRequest.status,
-        created_at: orgRequest.created_at,
-        updated_at: orgRequest.updated_at,
-      }
-    : orgRecord
-      ? {
-          id: orgRecord.id,
-          name: orgRecord.name,
-          type: orgRecord.type,
-          description: orgRecord.description,
-          logo_url: orgRecord.logo_url,
-          cover_image_url: orgRecord.cover_image_url,
-          location_text: orgRecord.location_text,
-          latitude: orgRecord.latitude,
-          longitude: orgRecord.longitude,
-          attendance_radius_meters: orgRecord.attendance_radius_meters,
-          attendance_radius_enabled: orgRecord.attendance_radius_enabled,
-          status: orgRecord.status,
-          created_at: orgRecord.created_at,
-          updated_at: orgRecord.updated_at,
-        }
-      : null;
+  const org = data?.data ?? null;
 
   const { mutate: submitAction, isPending: isActioning } = useMutation({
     mutationFn: ({ action, note }: { action: ActionType; note: string }) =>
-      api.post(`/organisation-requests/${orgId}/${action}`, { review_note: note }),
+      api.post(`/organisations/${orgId}/${action}`, { review_note: note }),
     onSuccess: (_, { action }) => {
-      queryClient.invalidateQueries({ queryKey: ["organisation-request", orgId] });
       queryClient.invalidateQueries({ queryKey: ["organisation", orgId] });
-      queryClient.invalidateQueries({ queryKey: ["organisation-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["organisations"] });
       toast.success(action === "approve" ? "Organization approved!" : "Request denied.");
       setPendingAction(null);
     },
@@ -331,7 +255,7 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
 
   if (isLoading) return <DetailSkeleton />;
 
-  if (isError || !displayOrg) {
+  if (isError || !org) {
     return (
       <div className="bg-red-50 border border-red-100 rounded-xl px-5 py-4 text-sm text-red-600 font-medium">
         Failed to load organization details. Please try again.
@@ -339,7 +263,6 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
     );
   }
 
-  const org = displayOrg;
   const status = org.status;
   const city = org.location_text.split(",")[0]?.trim() ?? org.location_text;
   const tabs = [
@@ -385,7 +308,7 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
               <h2 className="text-xl font-bold text-slate-900 flex flex-wrap items-center gap-2">
                 {org.name}
                 <Badge variant={statusVariant(status)} className="capitalize">
-                  {status}
+                  {statusLabel(status)}
                 </Badge>
               </h2>
               <p className="text-sm text-slate-500 mt-0.5 flex items-center gap-1.5">
@@ -398,31 +321,29 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
             </div>
           </div>
 
-          {/* Action buttons — only when a pending request record exists */}
-          {orgRequest && (
-            <div className="flex gap-2 shrink-0">
-              {status === "pending" && (
-                <>
-                  <Button variant="destructive" size="sm" onClick={() => setPendingAction("deny")}>
-                    <XCircle className="h-3.5 w-3.5" /> Deny
-                  </Button>
-                  <Button variant="success" size="sm" onClick={() => setPendingAction("approve")}>
-                    <CheckCircle className="h-3.5 w-3.5" /> Approve
-                  </Button>
-                </>
-              )}
-              {status === "active" && (
-                <Button variant="warning" size="sm" onClick={() => setPendingAction("deny")}>
-                  <AlertTriangle className="h-3.5 w-3.5" /> Suspend
+          {/* Action buttons */}
+          <div className="flex gap-2 shrink-0">
+            {status === "pending" && (
+              <>
+                <Button variant="destructive" size="sm" onClick={() => setPendingAction("deny")}>
+                  <XCircle className="h-3.5 w-3.5" /> Deny
                 </Button>
-              )}
-              {status === "suspended" && (
                 <Button variant="success" size="sm" onClick={() => setPendingAction("approve")}>
-                  <CheckCircle className="h-3.5 w-3.5" /> Reactivate
+                  <CheckCircle className="h-3.5 w-3.5" /> Approve
                 </Button>
-              )}
-            </div>
-          )}
+              </>
+            )}
+            {status === "approved" && (
+              <Button variant="warning" size="sm" onClick={() => setPendingAction("deny")}>
+                <AlertTriangle className="h-3.5 w-3.5" /> Suspend
+              </Button>
+            )}
+            {status === "suspended" && (
+              <Button variant="success" size="sm" onClick={() => setPendingAction("approve")}>
+                <CheckCircle className="h-3.5 w-3.5" /> Reactivate
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Tab bar */}
@@ -542,7 +463,7 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
                   <div>
                     <p className="text-xs text-slate-500 mb-0.5">Status</p>
                     <Badge variant={statusVariant(status)} className="capitalize">
-                      {status}
+                      {statusLabel(status)}
                     </Badge>
                   </div>
                   <div>
@@ -570,7 +491,7 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
                 </CardContent>
               </Card>
 
-              {orgRequest && status === "pending" && (
+              {status === "pending" && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Quick Actions</CardTitle>
