@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useLogout } from "@/hooks/use-logout";
+import { LogoutDialog } from "@/components/logout-dialog";
 import {
   LayoutDashboard,
   BookOpen,
@@ -64,7 +64,7 @@ export function OrgSidebar({
 }: OrgSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const logout = useLogout();
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   const pathParts = pathname.split("/");
@@ -263,7 +263,7 @@ export function OrgSidebar({
       {/* Footer */}
       <div className="px-3 py-3 border-t border-slate-100">
         <button
-          onClick={() => void logout()}
+          onClick={() => setLogoutOpen(true)}
           className={cn(
             "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all",
             collapsed && "justify-center px-0"
@@ -274,6 +274,7 @@ export function OrgSidebar({
           </span>
           {!collapsed && "Sign out"}
         </button>
+        <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
       </div>
     </aside>
   );

@@ -16,7 +16,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { useLogout } from "@/hooks/use-logout";
+import { LogoutDialog } from "@/components/logout-dialog";
 
 interface ShellClientProps {
   sidebar: React.ReactNode;
@@ -137,8 +137,8 @@ function ShellInner({
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
-  const logout = useLogout();
 
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -322,7 +322,7 @@ function ShellInner({
                       <button
                         onClick={() => {
                           setProfileOpen(false);
-                          void logout();
+                          setLogoutOpen(true);
                         }}
                         className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
                       >
@@ -334,6 +334,8 @@ function ShellInner({
                 </>
               )}
             </div>
+
+            <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
           </div>
         </header>
 

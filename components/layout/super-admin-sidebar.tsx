@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useLogout } from "@/hooks/use-logout";
+import { LogoutDialog } from "@/components/logout-dialog";
 import {
   LayoutDashboard,
   Building2,
@@ -50,7 +50,7 @@ const orgDetailTabs = [
 export function SuperAdminSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const logout = useLogout();
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const isOnSettings = pathname.startsWith("/super-admin/settings");
   const activeTab = searchParams.get("tab") ?? "general";
   const [settingsOpen, setSettingsOpen] = useState(isOnSettings);
@@ -201,7 +201,7 @@ export function SuperAdminSidebar() {
       {/* Footer */}
       <div className="px-3 py-4 border-t border-slate-100">
         <button
-          onClick={() => void logout()}
+          onClick={() => setLogoutOpen(true)}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all"
         >
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
@@ -209,6 +209,7 @@ export function SuperAdminSidebar() {
           </span>
           Sign out
         </button>
+        <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
       </div>
     </aside>
   );
