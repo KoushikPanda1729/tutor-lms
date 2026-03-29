@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,10 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
 import { api } from "@/lib/api";
+import { setUser } from "@/store/slices/authSlice";
+import type { RootState } from "@/store";
 
 const LocationMapPicker = dynamic(() => import("@/components/onboarding/location-map-picker"), {
   ssr: false,
@@ -72,6 +75,66 @@ export default function OnboardingPage() {
   const [geoOpen, setGeoOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+  const dispatch = useDispatch();
+  const authUser = useSelector((state: RootState) => state.auth.user);
+
+  // On initial mount: single check (handles page refresh while waiting).
+  useEffect(() => {
+    const orgId = localStorage.getItem("pending_org_id");
+    if (!orgId) return;
+    api
+      .get<{ id: string; name: string }>(`/public/organisations/${orgId}`)
+      .then((res) => {
+        if (res?.data?.id) {
+          localStorage.removeItem("pending_org_id");
+          if (authUser) {
+            dispatch(
+              setUser({
+                ...authUser,
+                organisations: [{ id: res.data.id, name: res.data.name, role: "owner" }],
+              })
+            );
+          }
+          router.push(`/org/${res.data.id}/dashboard`);
+        }
+      })
+      .catch(() => {
+        /* still pending */
+      });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // On step 2 (queue screen): poll every 10s until approved.
+  useEffect(() => {
+    if (step !== 2) return;
+
+    const orgId = localStorage.getItem("pending_org_id");
+    if (!orgId) return;
+
+    const interval = setInterval(() => {
+      api
+        .get<{ id: string; name: string }>(`/public/organisations/${orgId}`)
+        .then((res) => {
+          if (res?.data?.id) {
+            clearInterval(interval);
+            localStorage.removeItem("pending_org_id");
+            if (authUser) {
+              dispatch(
+                setUser({
+                  ...authUser,
+                  organisations: [{ id: res.data.id, name: res.data.name, role: "owner" }],
+                })
+              );
+            }
+            router.push(`/org/${res.data.id}/dashboard`);
+          }
+        })
+        .catch(() => {
+          /* still pending */
+        });
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSkip = () => {
     localStorage.setItem("org_setup_skipped", "true");
@@ -144,7 +207,7 @@ export default function OnboardingPage() {
     setSubmitting(true);
     try {
       const data = form.getValues();
-      await api.post("/organisation-requests", {
+      const res = await api.post<{ id: string }>("/organisation-requests", {
         name: data.name,
         type: data.type,
         description: data.description,
@@ -156,6 +219,10 @@ export default function OnboardingPage() {
         attendance_radius_meters: data.attendance_radius_meters,
         attendance_radius_enabled: data.attendance_radius_enabled,
       });
+      // Save the org id so we can poll for approval
+      if (res?.data?.id) {
+        localStorage.setItem("pending_org_id", res.data.id);
+      }
       setSubmittedName(data.name);
       setSubmittedEmail(data.email);
       setStep(2);

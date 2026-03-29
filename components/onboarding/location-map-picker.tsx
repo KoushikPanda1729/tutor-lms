@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -37,7 +37,20 @@ interface LocationMapPickerProps {
   onPick: (lat: number, lng: number) => void;
 }
 
+// useSyncExternalStore-based client-only guard (avoids setState-in-effect lint error)
+function useIsClient() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
 export default function LocationMapPicker({ lat, lng, onPick }: LocationMapPickerProps) {
+  const isClient = useIsClient();
+
+  if (!isClient) return null;
+
   return (
     <MapContainer center={[lat, lng]} zoom={13} style={{ height: "100%", width: "100%" }}>
       <TileLayer
