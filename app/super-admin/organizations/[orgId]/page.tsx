@@ -16,6 +16,9 @@ import {
   Loader2,
   MessageSquare,
   Trash2,
+  Users,
+  ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,6 +49,40 @@ type Organisation = {
 };
 
 type ReviewAction = "approve" | "deny" | null;
+
+type OrgStudent = {
+  id: string;
+  user_id: string;
+  organisation_id: string;
+  is_active: boolean;
+  joined_at: string;
+  user_name: string;
+};
+
+type OrgStudentsResponse = {
+  items: OrgStudent[];
+  meta: { page: number; page_size: number; total_items: number; total_pages: number };
+};
+
+const AVATAR_COLORS = [
+  "bg-indigo-100 text-indigo-700",
+  "bg-violet-100 text-violet-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-amber-100 text-amber-700",
+  "bg-sky-100 text-sky-700",
+  "bg-rose-100 text-rose-700",
+];
+function getAvatarColor(id: string) {
+  const sum = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return AVATAR_COLORS[sum % AVATAR_COLORS.length] ?? AVATAR_COLORS[0];
+}
+function formatJoined(d: string) {
+  return new Date(d).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 function statusVariant(status: string) {
   const map: Record<string, "success" | "pending" | "suspended" | "destructive"> = {
@@ -317,6 +354,13 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
     onError: (err: Error) => toast.error(err.message ?? "Failed to delete organization."),
   });
 
+  // Students — must be before early returns (Rules of Hooks)
+  const { data: studentsData, isLoading: studentsLoading } = useQuery({
+    queryKey: ["org-students", orgId],
+    queryFn: () => api.get<OrgStudentsResponse>(`/organisations/${orgId}/students`),
+    enabled: activeTab === "students",
+  });
+
   if (isLoading) return <DetailSkeleton />;
   if (isError || !org) {
     return (
@@ -328,9 +372,11 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
 
   const status = org.status;
   const city = org.location_text.split(",")[0]?.trim() ?? org.location_text;
+
   const tabs = [
     { label: "Overview", tab: "overview" },
     { label: "Location", tab: "location" },
+    { label: "Students", tab: "students" },
   ];
 
   return (
@@ -609,6 +655,98 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* STUDENTS */}
+        {activeTab === "students" && (
+          <div>
+            {studentsLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+              </div>
+            ) : !studentsData?.data?.items?.length ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+                  <Users className="h-5 w-5 text-slate-400" />
+                </div>
+                <p className="text-sm font-semibold text-slate-600">No students yet</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  No students have joined this organization.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                {/* Header row */}
+                <div className="flex items-center px-5 py-2.5 bg-slate-50 border-b border-slate-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      Student
+                    </p>
+                  </div>
+                  <div className="w-36 shrink-0 text-right hidden sm:block">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      Joined
+                    </p>
+                  </div>
+                  <div className="w-20 shrink-0 text-center hidden sm:block">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      Status
+                    </p>
+                  </div>
+                </div>
+
+                {studentsData.data.items.map((s, i) => {
+                  const avatarColor = getAvatarColor(s.id);
+                  return (
+                    <div
+                      key={s.id}
+                      className={cn(
+                        "flex items-center px-5 py-3 transition-colors hover:bg-slate-50",
+                        i !== 0 && "border-t border-slate-100"
+                      )}
+                    >
+                      <div className="flex-1 min-w-0 flex items-center gap-3">
+                        <div
+                          className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold ${avatarColor}`}
+                        >
+                          {getInitials(s.user_name)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">
+                            {s.user_name}
+                          </p>
+                          <p className="text-[11px] text-slate-400 font-mono truncate">
+                            {s.user_id}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="w-36 shrink-0 text-right hidden sm:flex items-center justify-end gap-1.5 text-xs text-slate-400">
+                        <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                        {formatJoined(s.joined_at)}
+                      </div>
+                      <div className="w-20 shrink-0 hidden sm:flex justify-center">
+                        <span
+                          className={cn(
+                            "text-[11px] font-semibold px-2.5 py-0.5 rounded-full border",
+                            s.is_active
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                              : "bg-slate-100 text-slate-500 border-slate-200"
+                          )}
+                        >
+                          {s.is_active ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <div className="px-5 py-2.5 bg-slate-50 border-t border-slate-100 text-xs text-slate-400">
+                  {studentsData.data.meta.total_items} student
+                  {studentsData.data.meta.total_items !== 1 ? "s" : ""} total
+                </div>
+              </div>
+            )}
           </div>
         )}
 
