@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, use, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Building2,
@@ -15,6 +15,7 @@ import {
   Radio,
   Loader2,
   MessageSquare,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +29,6 @@ import { toast } from "sonner";
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Organisation = {
   id: string;
-  request_id?: string;
   status: "pending" | "approved" | "suspended" | "rejected";
   name: string;
   type: string;
@@ -40,19 +40,16 @@ type Organisation = {
   longitude: number;
   attendance_radius_meters: number;
   attendance_radius_enabled: boolean;
-  member_count?: number;
-  course_count?: number;
   requester_id?: string;
   created_at: string;
   updated_at: string;
 };
 
-type ActionType = "approve" | "deny" | null;
+type ReviewAction = "approve" | "deny" | null;
 
 function statusVariant(status: string) {
   const map: Record<string, "success" | "pending" | "suspended" | "destructive"> = {
     approved: "success",
-    active: "success",
     pending: "pending",
     suspended: "suspended",
     rejected: "destructive",
@@ -73,15 +70,15 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-// ─── Review Note Dialog ───────────────────────────────────────────────────────
-function ReviewNoteDialog({
+// ─── Review Dialog ────────────────────────────────────────────────────────────
+function ReviewDialog({
   action,
   orgName,
   isPending,
   onConfirm,
   onCancel,
 }: {
-  action: ActionType;
+  action: ReviewAction;
   orgName: string;
   isPending: boolean;
   onConfirm: (note: string) => void;
@@ -89,19 +86,17 @@ function ReviewNoteDialog({
 }) {
   const [note, setNote] = useState(
     action === "approve"
-      ? "Approved. Welcome aboard!"
+      ? "Looks good. Approved."
       : "Denied. Please provide more details about your institute."
   );
 
   if (!action) return null;
-
   const isApprove = action === "approve";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
-        {/* Icon */}
         <div
           className={cn(
             "h-12 w-12 rounded-2xl flex items-center justify-center",
@@ -114,7 +109,6 @@ function ReviewNoteDialog({
             <XCircle className="h-6 w-6 text-red-500" />
           )}
         </div>
-
         <div>
           <h3 className="text-base font-bold text-slate-900">
             {isApprove ? "Approve Organization" : "Deny Request"}
@@ -125,12 +119,9 @@ function ReviewNoteDialog({
               : `Denying "${orgName}"'s request will notify the requester.`}
           </p>
         </div>
-
-        {/* Review note */}
         <div>
           <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-            <MessageSquare className="h-3 w-3" />
-            Review Note
+            <MessageSquare className="h-3 w-3" /> Review Note
           </label>
           <textarea
             value={note}
@@ -140,7 +131,6 @@ function ReviewNoteDialog({
             placeholder="Add a review note..."
           />
         </div>
-
         <div className="flex gap-2 pt-1">
           <Button
             variant="outline"
@@ -152,14 +142,73 @@ function ReviewNoteDialog({
             Cancel
           </Button>
           <Button
-            variant={isApprove ? "success" : "destructive"}
             size="sm"
-            className="flex-1"
+            className={cn(
+              "flex-1",
+              isApprove
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                : "bg-red-500 hover:bg-red-600 text-white"
+            )}
             onClick={() => onConfirm(note)}
             disabled={isPending}
           >
             {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {isApprove ? "Approve" : "Deny"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Delete Confirmation Dialog ───────────────────────────────────────────────
+function DeleteDialog({
+  orgName,
+  isPending,
+  onConfirm,
+  onCancel,
+}: {
+  orgName: string;
+  isPending: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+        <div className="h-12 w-12 rounded-2xl bg-red-50 flex items-center justify-center">
+          <AlertTriangle className="h-6 w-6 text-red-500" />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Delete Organization</h3>
+          <p className="text-sm text-slate-500 mt-0.5">
+            This will permanently delete{" "}
+            <span className="font-semibold text-slate-800">&quot;{orgName}&quot;</span>. This action
+            cannot be undone.
+          </p>
+        </div>
+        <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-700 font-medium">
+          {orgName}
+        </div>
+        <div className="flex gap-2 pt-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={onCancel}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+            onClick={onConfirm}
+            disabled={isPending}
+          >
+            {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            Yes, Delete
           </Button>
         </div>
       </div>
@@ -229,8 +278,10 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") ?? "overview";
   const queryClient = useQueryClient();
+  const router = useRouter();
 
-  const [pendingAction, setPendingAction] = useState<ActionType>(null);
+  const [pendingAction, setPendingAction] = useState<ReviewAction>(null);
+  const [showDelete, setShowDelete] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["organisation", orgId],
@@ -239,22 +290,34 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
 
   const org = data?.data ?? null;
 
+  // Approve / Deny — PATCH /organisations/{id}
   const { mutate: submitAction, isPending: isActioning } = useMutation({
-    mutationFn: ({ action, note }: { action: ActionType; note: string }) =>
-      api.post(`/organisations/${orgId}/${action}`, { review_note: note }),
+    mutationFn: ({ action, note }: { action: ReviewAction; note: string }) =>
+      api.patch(`/organisations/${orgId}`, {
+        status: action === "approve" ? "approved" : "denied",
+        review_note: note,
+      }),
     onSuccess: (_, { action }) => {
       queryClient.invalidateQueries({ queryKey: ["organisation", orgId] });
       queryClient.invalidateQueries({ queryKey: ["organisations"] });
       toast.success(action === "approve" ? "Organization approved!" : "Request denied.");
       setPendingAction(null);
     },
-    onError: (err: Error) => {
-      toast.error(err.message ?? "Failed to update status.");
+    onError: (err: Error) => toast.error(err.message ?? "Failed to update status."),
+  });
+
+  // Delete — DELETE /organisations/{id}
+  const { mutate: deleteOrg, isPending: isDeleting } = useMutation({
+    mutationFn: () => api.delete(`/organisations/${orgId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organisations"] });
+      toast.success("Organization deleted.");
+      router.push("/super-admin/organizations");
     },
+    onError: (err: Error) => toast.error(err.message ?? "Failed to delete organization."),
   });
 
   if (isLoading) return <DetailSkeleton />;
-
   if (isError || !org) {
     return (
       <div className="bg-red-50 border border-red-100 rounded-xl px-5 py-4 text-sm text-red-600 font-medium">
@@ -272,14 +335,21 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
 
   return (
     <>
-      {/* Review Note Dialog */}
       {pendingAction && (
-        <ReviewNoteDialog
+        <ReviewDialog
           action={pendingAction}
           orgName={org.name}
           isPending={isActioning}
           onConfirm={(note) => submitAction({ action: pendingAction, note })}
           onCancel={() => setPendingAction(null)}
+        />
+      )}
+      {showDelete && (
+        <DeleteDialog
+          orgName={org.name}
+          isPending={isDeleting}
+          onConfirm={() => deleteOrg()}
+          onCancel={() => setShowDelete(false)}
         />
       )}
 
@@ -322,26 +392,48 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Delete — always visible */}
+            <button
+              onClick={() => setShowDelete(true)}
+              className="h-9 w-9 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-400 hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-all"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+
             {status === "pending" && (
               <>
-                <Button variant="destructive" size="sm" onClick={() => setPendingAction("deny")}>
-                  <XCircle className="h-3.5 w-3.5" /> Deny
-                </Button>
-                <Button variant="success" size="sm" onClick={() => setPendingAction("approve")}>
-                  <CheckCircle className="h-3.5 w-3.5" /> Approve
-                </Button>
+                {/* Deny — outline */}
+                <button
+                  onClick={() => setPendingAction("deny")}
+                  className="h-9 px-4 rounded-lg border border-red-200 text-red-600 bg-white hover:bg-red-50 hover:border-red-300 text-sm font-semibold flex items-center gap-1.5 transition-all"
+                >
+                  <XCircle className="h-4 w-4" /> Deny
+                </button>
+                {/* Approve — solid */}
+                <button
+                  onClick={() => setPendingAction("approve")}
+                  className="h-9 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  <CheckCircle className="h-4 w-4" /> Approve
+                </button>
               </>
             )}
             {status === "approved" && (
-              <Button variant="warning" size="sm" onClick={() => setPendingAction("deny")}>
-                <AlertTriangle className="h-3.5 w-3.5" /> Suspend
-              </Button>
+              <button
+                onClick={() => setPendingAction("deny")}
+                className="h-9 px-4 rounded-lg border border-amber-200 text-amber-700 bg-white hover:bg-amber-50 hover:border-amber-300 text-sm font-semibold flex items-center gap-1.5 transition-all"
+              >
+                <AlertTriangle className="h-4 w-4" /> Suspend
+              </button>
             )}
             {status === "suspended" && (
-              <Button variant="success" size="sm" onClick={() => setPendingAction("approve")}>
-                <CheckCircle className="h-3.5 w-3.5" /> Reactivate
-              </Button>
+              <button
+                onClick={() => setPendingAction("approve")}
+                className="h-9 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+              >
+                <CheckCircle className="h-4 w-4" /> Reactivate
+              </button>
             )}
           </div>
         </div>
@@ -491,31 +583,26 @@ function OrgDetailContent({ orgId }: { orgId: string }) {
                 </CardContent>
               </Card>
 
-              {status === "pending" && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button
-                      variant="success"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setPendingAction("approve")}
-                    >
-                      <CheckCircle className="h-3.5 w-3.5" /> Approve Organization
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setPendingAction("deny")}
-                    >
-                      <XCircle className="h-3.5 w-3.5" /> Deny Request
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+              {/* Danger zone */}
+              <Card className="border-red-100">
+                <CardHeader>
+                  <CardTitle className="text-red-600 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" /> Danger Zone
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-slate-500 mb-3">
+                    Permanently delete this organization and all associated data.
+                  </p>
+                  <button
+                    onClick={() => setShowDelete(true)}
+                    className="w-full h-9 rounded-lg border border-red-200 text-red-600 bg-white hover:bg-red-50 hover:border-red-300 text-sm font-semibold flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Delete Organization
+                  </button>
+                </CardContent>
+              </Card>
+
               {status === "rejected" && (
                 <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs text-slate-400 text-center">
                   This request has been denied.
